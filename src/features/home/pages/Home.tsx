@@ -1,11 +1,11 @@
 // src/features/home/pages/Home.tsx
-import HeaderProject from '../components/HeaderProject';
+import Project from '../components/header/ProjectTitle';
 import Tasks from '../components/Tasks';
 
 const Home = () => {
   return (
     <div>
-      <HeaderProject />
+      <Project />
       <Tasks />
     </div>
   );

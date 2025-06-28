@@ -1,6 +1,5 @@
 // src/features/home/pages/Home.tsx
-import React, { useState } from 'react'
-import TaskCard from './TaskCard';
+import React, { useState, useRef } from 'react'
 import useGlobalTaskStore, { Task } from '../../../store/tasks'
 import Modal from './Modal'
 
@@ -15,9 +14,8 @@ const Tasks = () => {
 
   
   function deleteTask(index: number){
-    console.log(index)
     const updatedTasks = tasks.filter((_, i) => i !== index)
-    setTasks(updatedTasks)
+    setTasks(() => updatedTasks)
   }
   
   function moveTaskUp(index: number){
@@ -29,7 +27,7 @@ const Tasks = () => {
     const currTask = tasks[index]
     updatedTasks[index-1] = currTask
     updatedTasks[index] = previousTask
-    setTasks(updatedTasks)
+    setTasks(() => updatedTasks)
   }
   
   function moveTaskDown(index: number){
@@ -41,22 +39,49 @@ const Tasks = () => {
     const currTask = tasks[index]
     updatedTasks[index+1] = currTask
     updatedTasks[index] = nextTask
-    setTasks(updatedTasks)
+    setTasks(() => updatedTasks)
   }
 
+  const timers = useRef<{ [id: number]: NodeJS.Timeout }>({});
+
+  const startTimer = (id: number) => {
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.id === id ? { ...task, running: true } : task
+      )
+    );
+
+  timers.current[id] = setInterval(() => {
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.id === id && task.running // ✅ only increment if still running
+          ? { ...task, seconds: task.seconds + 1 }
+          : task
+      )
+    );
+  }, 1000);
+  }
+
+  const stopTimer = (id: number) => {
+    clearInterval(timers.current[id]);
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.id === id ? { ...task, running: false } : task
+      )
+    );
+  };
+
   const handleEditTask = (index: number) => {
-    console.log(`Edit Task Called`)
     const newTasks = [...tasks]
     const currTask = newTasks[index]
     if (currTask.title && currTask.body) {
-      newTasks[index] = {title: title, body: body}
-      setTasks(newTasks)
+      newTasks[index] = {id: tasks.length+1, title: title, body: body, seconds: 0, running: false}
+      setTasks(() => newTasks)
       setTitle('');
       setBody('');
       setIsModalOpen(false);
     }
   };
-
 
   const editTask = (index: number) => {
     setIndex(index);
@@ -72,20 +97,34 @@ const Tasks = () => {
   }
 
   return (
-    <div>
-      {/* <TaskCard /> */}
+    <div className="bg-[#424242] w-[1000px] px-4 pb-2">
       <ol>
         {tasks.map((task, index) => <li key={index}><span className="text">
-          <div className="bg-blue-400 p-4 rounded w-[1000px]">
-            <div>
+          <div className="rounded mb-3 p-3 bg-[#202020] text-white">
+            <div  className="ml-2">
             <h1 className="text-2xl font-semibold mb-2">{task.title}</h1>
             <p>{task.body}</p>
           </div>
-          <button className="m-1 bg-red-600 p-3 text-white" onClick={() => deleteTask(index)}> Delete </button>
-          <button className="m-1 bg-red-600 p-3 text-white" onClick={() => editTask(index)}> Edit </button>
-          <button className="m-1 bg-red-600 p-3 text-white" onClick={() => moveTaskUp(index)}> Move Up </button>
-          <button className="m-1 bg-red-600 p-3 text-white"  onClick={() => moveTaskDown(index)}> Move Down </button>
-          <button className="m-1 bg-red-600 p-3 text-white"> Start Timer </button>
+          <button className="m-1 bg-[#424242] p-3 text-white rounded" onClick={() => editTask(index)}> Edit </button>
+          <button className="m-1 bg-[#424242] p-3 text-white rounded" onClick={() => moveTaskUp(index)}> Move Up </button>
+          <button className="m-1 bg-[#424242] p-3 text-white rounded"  onClick={() => moveTaskDown(index)}> Move Down </button>
+          {!task.running ? (
+            <button
+              onClick={() => startTimer(task.id)}
+              className="m-1 bg-[#1E5631] p-3 text-white rounded"
+            >
+              Start Timer
+            </button>
+          ) : (
+            <button
+              onClick={() => stopTimer(task.id)}
+              className="m-1 bg-[#910000] p-3 text-white rounded"
+            >
+              Stop Timer
+            </button>
+          )}
+          <button className="m-1 bg-[#910000] p-3 text-white rounded" onClick={() => deleteTask(index)}> Delete </button>
+          <span className="bg-[#910000] p-3.5 pb-4 text-white rounded" onClick={() => deleteTask(index)}>Time Taken: {task.seconds} </span>
           </div>
           </span></li>)}
       </ol>
