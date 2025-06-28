@@ -102,7 +102,7 @@ const Tasks = () => {
         {tasks.map((task, index) => <li key={index}><span className="text">
           <div className="rounded mb-3 p-3 bg-[#202020] text-white">
             <div  className="ml-2">
-            <h1 className="text-2xl font-semibold mb-2">{task.title}</h1>
+            <h1 className="text-2xl font-semibold mb-2">p{index}: {task.title}</h1>
             <p>{task.body}</p>
           </div>
           <button className="m-1 bg-[#424242] p-3 text-white rounded" onClick={() => editTask(index)}> Edit </button>
