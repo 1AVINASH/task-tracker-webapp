@@ -6,6 +6,7 @@ import uvicorn
 from constants.defaults import DEFAULT_HOST, DEFAULT_PORT
 from utility.middlewares import LoggingMiddleware
 from tasks.routes import tasks_router
+from infra.postgres_setup import db
 
 app = FastAPI(debug=True)
 
@@ -14,6 +15,14 @@ app.add_middleware(LoggingMiddleware)
 
 # Add routes
 app.include_router(tasks_router)
+
+@app.on_event("startup")
+async def startup():
+    await db.connect()
+
+@app.on_event("shutdown")
+async def shutdown():
+    await db.disconnect()
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description="Start the fast api server")

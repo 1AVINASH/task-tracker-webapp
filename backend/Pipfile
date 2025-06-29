@@ -9,6 +9,8 @@ uvicorn = "*"
 requests = "*"
 sqlalchemy = "*"
 python-dotenv = "*"
+databases = "*"
+asyncpg = "*"
 
 [dev-packages]
 
