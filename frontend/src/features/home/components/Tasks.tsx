@@ -124,7 +124,7 @@ const Tasks = () => {
             </button>
           )}
           <button className="m-1 bg-[#910000] p-3 text-white rounded" onClick={() => deleteTask(index)}> Delete </button>
-          <span className="bg-[#910000] p-3.5 pb-4 text-white rounded" onClick={() => deleteTask(index)}>Time Taken: {task.seconds} </span>
+          <span className="bg-[#910000] p-3.5 pb-4 text-white rounded">Time Taken: {task.seconds} </span>
           </div>
           </span></li>)}
       </ol>
