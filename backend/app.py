@@ -5,7 +5,7 @@ import uvicorn
 
 from constants.defaults import DEFAULT_HOST, DEFAULT_PORT
 from utility.middlewares import LoggingMiddleware
-from template_feature.routes import template_router
+from tasks.routes import tasks_router
 
 app = FastAPI(debug=True)
 
@@ -13,7 +13,7 @@ app = FastAPI(debug=True)
 app.add_middleware(LoggingMiddleware)
 
 # Add routes
-app.include_router(template_router)
+app.include_router(tasks_router)
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description="Start the fast api server")
