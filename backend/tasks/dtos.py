@@ -1,18 +1,28 @@
 from pydantic import BaseModel, Field, UUID4
 from typing import Dict, Any, Optional
 
+from tasks.models import Task
+
 class Input:
     class CreateTasks(BaseModel):
-        title: str = Field(..., min_length=6, max_length=20)
+        title: str = Field(..., min_length=1, max_length=20)
         body: str = Field(...)
-        order: int
+        priority: int
         running: bool
         seconds: int
     
     class UpdateTasks(BaseModel):
-        id: UUID4 = Field(...)
-        title: str = Field(..., min_length=6, max_length=20)
+        id: int = Field(...)
+        title: str = Field(..., min_length=1, max_length=20)
         body: str = Field(...)
-        order: int
+        priority: int
         running: bool
         seconds: int
+    
+    class MoveUpTask(BaseModel):
+        move_up_task: Task
+        move_down_task: Task
+    
+    class MoveDownTask(BaseModel):
+        move_up_task: Task
+        move_down_task: Task

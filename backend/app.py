@@ -2,6 +2,7 @@ import argparse
 
 from fastapi import FastAPI
 import uvicorn
+from fastapi.middleware.cors import CORSMiddleware
 
 from constants.defaults import DEFAULT_HOST, DEFAULT_PORT
 from utility.middlewares import LoggingMiddleware
@@ -12,6 +13,13 @@ app = FastAPI(debug=True)
 
 # Add Middlewares
 app.add_middleware(LoggingMiddleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # or "*" in dev
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Add routes
 app.include_router(tasks_router)

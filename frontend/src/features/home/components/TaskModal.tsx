@@ -20,7 +20,7 @@ const TaskModal = ({ isOpen, title, body }: TaskModalProps) => {
 
   const handleAddTask = () => {
     if (title && body) {
-      setTasks(() => [...tasks, { id: 1, title, body, seconds: 0, running: false }]);
+      setTasks(() => [...tasks, { id: 1, title, body, seconds: 0, running: false, priority: tasks.length + 1 }]);
       setTitle('');
       setBody('');
       setIsModalOpen(false);

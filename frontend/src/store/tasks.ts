@@ -4,6 +4,7 @@ export type Task = {
   id: number
   title: string
   body: string
+  priority: number
   seconds: number
   running: boolean
 }
@@ -14,19 +15,19 @@ type GlobalTasksStore = {
   setTasks: (updater: (tasks: Task[]) => Task[]) => void;
   isModalOpen: boolean;
   setIsModalOpen: (isModalOpen: boolean) => void ;
+  isDeleteAllModalOpen: boolean;
+  setIsDeleteAllModalOpen: (isDeleteAllModalOpen: boolean) => void ;
 };
 
 const useGlobalTaskStore = create<GlobalTasksStore>((set) => ({
-  tasks: [
-    {id: 1, title: "Eat Breakfast", body: "Have breakfast properly", seconds: 0, running: false}, 
-    {id: 2, title: "Take a Shower", body: "Use shampoo twice a week", seconds: 0, running: false}, 
-    {id: 3, title: "Exercise", body: "Go to gym or running", seconds: 0, running: false}
-  ],
+  tasks: [],
   isModalOpen: false,
+  isDeleteAllModalOpen: false,
   // setTasks: (updatedTasks: Task[]) => set((state) => ({tasks: updatedTasks})),
   setTasks: (updater) => set((state) => ({ tasks: updater(state.tasks) })),
   addTask: (task: Task) => set((state) => ({tasks: [...state.tasks, task]})),
-  setIsModalOpen: (isModalOpen: boolean) => set((state) => ({isModalOpen: isModalOpen}))
+  setIsModalOpen: (isModalOpen: boolean) => set(() => ({ isModalOpen })),
+  setIsDeleteAllModalOpen: (isDeleteAllModalOpen: boolean) => set(() => ({ isDeleteAllModalOpen }))
 }));
 
 export default useGlobalTaskStore;

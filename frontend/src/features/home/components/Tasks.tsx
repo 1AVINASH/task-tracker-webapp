@@ -1,86 +1,155 @@
 // src/features/home/pages/Home.tsx
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import useGlobalTaskStore, { Task } from '../../../store/tasks'
+import shallow from 'zustand/shallow'
 import Modal from './Modal'
+import { fetchTasksApi, updateTaskApi, deleteTaskApi, moveTaskUpApi, moveTaskDownApi, deleteAllTaskApi } from '../api/tasks'
+import { formatSecondsToHHMMSS } from '../utils'
 
 
 const Tasks = () => {
-  const tasks = useGlobalTaskStore((state) => state.tasks)
   const setTasks = useGlobalTaskStore((state) => state.setTasks)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const isDeleteAllModalOpen = useGlobalTaskStore((state) => state.isDeleteAllModalOpen)
+  const setIsDeleteAllModalOpen = useGlobalTaskStore((state) => state.setIsDeleteAllModalOpen)
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [currIndex, setIndex] = useState(-1);
-
-  
-  function deleteTask(index: number){
-    const updatedTasks = tasks.filter((_, i) => i !== index)
-    setTasks(() => updatedTasks)
-  }
-  
-  function moveTaskUp(index: number){
-    const updatedTasks = [...tasks]
-    if (index === 0 ){
-      return
-    }
-    const previousTask = tasks[index-1]
-    const currTask = tasks[index]
-    updatedTasks[index-1] = currTask
-    updatedTasks[index] = previousTask
-    setTasks(() => updatedTasks)
-  }
-  
-  function moveTaskDown(index: number){
-    const updatedTasks = [...tasks]
-    if (index === tasks.length-1 ){
-      return
-    }
-    const nextTask = tasks[index+1]
-    const currTask = tasks[index]
-    updatedTasks[index+1] = currTask
-    updatedTasks[index] = nextTask
-    setTasks(() => updatedTasks)
-  }
-
   const timers = useRef<{ [id: number]: NodeJS.Timeout }>({});
+  const queryClient = useQueryClient();
+
+  const { mutate: updateTaskMutation } = useMutation({ 
+    mutationFn: updateTaskApi, 
+    onSuccess: (updatedTask) => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] as const });
+    },
+    }
+  );
+  
+  const { mutate: moveTaskUpMutation } = useMutation({ 
+    mutationFn: moveTaskUpApi, 
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] as const });
+    },
+  });
+  
+  const { mutate: moveTaskDownMutation } = useMutation({ 
+    mutationFn: moveTaskDownApi, 
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] as const });
+    },
+  });
+  
+  const { mutate: deleteTaskMutation } = useMutation({ 
+    mutationFn: deleteTaskApi, 
+    onSuccess: (deletedTaskId) => {
+      queryClient.setQueryData<Task[]>(['tasks'], (old) => old ? old.filter((task) => task.id !== deletedTaskId) : []);
+    },
+  });
+  
+  const { mutate: deleteAllTaskMutation } = useMutation({ 
+    mutationFn: deleteAllTaskApi, 
+    onSuccess: () => {
+      queryClient.setQueryData<Task[]>(['tasks'], []);
+    },
+  });
+  
+  const { data: tasks = [], isLoading, error } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: fetchTasksApi,
+    refetchOnWindowFocus: false,
+    staleTime: 10000,
+  });
+
+  const tasksRef = useRef<Task[]>(tasks);
+
+  useEffect(() => {
+    tasksRef.current = tasks;
+  }, [tasks]);
+
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error: {(error as Error).message}</p>;
+  setTasks(() => tasks)
+  console.log(tasks)
 
   const startTimer = (id: number) => {
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === id ? { ...task, running: true } : task
-      )
-    );
+    const currTask = tasks.find(task => task.id === id);
+    if (!currTask) {
+      return
+    }
+    updateTaskMutation({...currTask, running: true});
+    const newTasks = tasks.map(task => task.id === id ? {...task, running: true}: task)
+    setTasks(() => newTasks);
 
-  timers.current[id] = setInterval(() => {
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === id && task.running // ✅ only increment if still running
-          ? { ...task, seconds: task.seconds + 1 }
-          : task
-      )
-    );
-  }, 1000);
+    timers.current[id] = setInterval(() => {
+      const currTask = tasksRef.current.find(task => task.id === id);
+      if (currTask && currTask.running) {
+        const updatedTask = {
+          ...currTask,
+          seconds: currTask.seconds + 1,
+        };
+        updateTaskMutation(updatedTask);
+      }
+    }, 1000);
   }
 
   const stopTimer = (id: number) => {
+    const currTask = tasks.find(task => task.id === id);
+    if (!currTask) {
+      return
+    }
+    updateTaskMutation({...currTask, running: false});
     clearInterval(timers.current[id]);
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === id ? { ...task, running: false } : task
-      )
-    );
   };
 
   const handleEditTask = (index: number) => {
     const newTasks = [...tasks]
     const currTask = newTasks[index]
     if (currTask.title && currTask.body) {
-      newTasks[index] = {id: tasks.length+1, title: title, body: body, seconds: 0, running: false}
-      setTasks(() => newTasks)
+      updateTaskMutation({ id: currTask.id, title: title, body: body, running: false, seconds: 0, priority: currTask.priority });
       setTitle('');
       setBody('');
       setIsModalOpen(false);
     }
+  };
+  
+  const handleMoveUpTask = (index: number) => {
+    if (index==0) {
+      return
+    }
+    console.log(`Handling move up task for index ${index}`)
+    const newTasks = [...tasks]
+    const currTask = newTasks[index]
+    const prevTask = newTasks[index-1]
+    moveTaskUpMutation({move_up_task: {...currTask, priority: prevTask.priority}, move_down_task: {...prevTask, priority: currTask.priority}});
+  };
+  
+  const handleMoveDownTask = (index: number) => {
+    if (index==tasks.length-1) {
+      return
+    }
+    const newTasks = [...tasks]
+    const currTask = newTasks[index]
+    const nextTask = newTasks[index+1]
+    moveTaskDownMutation({move_down_task: {...currTask, priority: nextTask.priority}, move_up_task: {...nextTask, priority: currTask.priority}});
+  };
+  
+  const handleDeleteTask = (index: number) => {
+    const newTasks = [...tasks]
+    const currTask = newTasks[index]
+    if (currTask.title && currTask.body) {
+      deleteTaskMutation(currTask.id);
+      setTitle('');
+      setBody('');
+      setIsDeleteModalOpen(false);
+    }
+  };
+
+  const handleDeleteAllTask = () => {
+    deleteAllTaskMutation();
+    setIsDeleteAllModalOpen(false);
   };
 
   const editTask = (index: number) => {
@@ -89,11 +158,25 @@ const Tasks = () => {
     setTitle(tasks[index].title)
     setBody(tasks[index].body)
   }
+  
+  const deleteTaskUI = (index: number) => {
+    setIndex(index);
+    setIsDeleteModalOpen(true);
+  }
 
   const modalOnClose = () => {
     setIsModalOpen(false)
     setTitle('')
     setBody('')
+  }
+  
+  const deleteModalOnClose = () => {
+    setIsDeleteModalOpen(false)
+    setIndex(-1)
+  }
+  
+  const deleteAllModalOnClose = () => {
+    setIsDeleteAllModalOpen(false)
   }
 
   return (
@@ -106,8 +189,8 @@ const Tasks = () => {
             <p>{task.body}</p>
           </div>
           <button className="m-1 bg-[#424242] p-3 text-white rounded" onClick={() => editTask(index)}> Edit </button>
-          <button className="m-1 bg-[#424242] p-3 text-white rounded" onClick={() => moveTaskUp(index)}> Move Up </button>
-          <button className="m-1 bg-[#424242] p-3 text-white rounded"  onClick={() => moveTaskDown(index)}> Move Down </button>
+          <button className="m-1 bg-[#424242] p-3 text-white rounded" onClick={() => handleMoveUpTask(index)}> Move Up </button>
+          <button className="m-1 bg-[#424242] p-3 text-white rounded"  onClick={() => handleMoveDownTask(index)}> Move Down </button>
           {!task.running ? (
             <button
               onClick={() => startTimer(task.id)}
@@ -123,8 +206,8 @@ const Tasks = () => {
               Stop Timer
             </button>
           )}
-          <button className="m-1 bg-[#910000] p-3 text-white rounded" onClick={() => deleteTask(index)}> Delete </button>
-          <span className="bg-[#910000] p-3.5 pb-4 text-white rounded">Time Taken: {task.seconds} </span>
+          <button className="m-1 bg-[#910000] p-3 text-white rounded" onClick={() => deleteTaskUI(index)}> Delete </button>
+          <span className="bg-[#910000] p-3.5 pb-4 text-white rounded">Time Taken: {formatSecondsToHHMMSS(task.seconds)} </span>
           </div>
           </span></li>)}
       </ol>
@@ -149,6 +232,49 @@ const Tasks = () => {
         >
           Save Task
         </button>
+      </Modal>
+      <Modal isOpen={isDeleteModalOpen} onClose={() => deleteModalOnClose()}>
+        <h2 className="text-lg font-bold mb-2">Are you sure you want to delete this task?</h2>
+        <hr className="h-px mb-3 bg-gray-200 border-0 dark:bg-gray-700"></hr>
+        <p className="text-2xl font-semibold mb-2">{tasks[currIndex]?.title}</p>
+        <textarea disabled
+          placeholder="Body"
+          className="w-full mb-4 border px-2 py-1 rounded"
+          value={tasks[currIndex]?.body}
+          onChange={(e) => setBody(e.target.value)
+          }
+        />
+        <div className="flex justify-evenly items-center mx-20">
+        <button
+          onClick={() => handleDeleteTask(currIndex)}
+          className="bg-red-600 text-white px-4 py-2 rounded mx-5"
+        >
+          Yes
+        </button>
+        <button
+          onClick={() => deleteModalOnClose()}
+          className="bg-green-600 text-white px-4 py-2 rounded"
+        >
+          No
+        </button>
+        </div>
+      </Modal>
+      <Modal isOpen={isDeleteAllModalOpen} onClose={() => deleteAllModalOnClose()}>
+        <h2 className="text-lg font-bold mb-2">Are you sure you want to delete all the tasks?</h2>
+        <div className="flex justify-evenly items-center mx-20">
+        <button
+          onClick={() => handleDeleteAllTask()}
+          className="bg-green-600 text-white px-4 py-2 rounded"
+        >
+          Yes
+        </button>
+        <button
+          onClick={() => deleteAllModalOnClose()}
+          className="bg-red-600 text-white px-4 py-2 rounded"
+        >
+          No
+        </button>
+        </div>
       </Modal>
     </div>
   );
