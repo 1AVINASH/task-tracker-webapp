@@ -2,13 +2,17 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import useGlobalTaskStore, { Task } from '../../../store/tasks'
+import useGlobalBoardsStore, { Board } from '../../../store/boards'
 import shallow from 'zustand/shallow'
-import Modal from './Modal'
-import { fetchTasksApi, updateTaskApi, deleteTaskApi, moveTaskUpApi, moveTaskDownApi, deleteAllTaskApi } from '../api/tasks'
-import { formatSecondsToHHMMSS } from '../utils'
+import Modal from '../../../components/Modals/Modal'
+import { fetchTasksApi, updateTaskApi, deleteTaskApi, moveTaskUpApi, moveTaskDownApi, deleteAllTaskApi, FetchTasksReq } from '../api/tasks'
+import { formatSecondsToHHMMSS } from '../../../utils/DateTimeUtils'
+import { useParams } from 'react-router-dom';
 
 
 const Tasks = () => {
+  const { boardId: boardIdParam } = useParams();
+  const boardId = boardIdParam ? parseInt(boardIdParam, 10) : undefined;
   const setTasks = useGlobalTaskStore((state) => state.setTasks)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -19,11 +23,14 @@ const Tasks = () => {
   const [currIndex, setIndex] = useState(-1);
   const timers = useRef<{ [id: number]: NodeJS.Timeout }>({});
   const queryClient = useQueryClient();
-
+  const queryParams: FetchTasksReq = {
+      boardId: boardId!, // Assuming `enabled` handles undef/NaN check
+  };
+  
   const { mutate: updateTaskMutation } = useMutation({ 
     mutationFn: updateTaskApi, 
     onSuccess: (updatedTask) => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] as const });
+      queryClient.invalidateQueries({ queryKey: ['tasks', queryParams] as const });
     },
     }
   );
@@ -31,36 +38,37 @@ const Tasks = () => {
   const { mutate: moveTaskUpMutation } = useMutation({ 
     mutationFn: moveTaskUpApi, 
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] as const });
+      queryClient.invalidateQueries({ queryKey: ['tasks', queryParams] as const });
     },
   });
   
   const { mutate: moveTaskDownMutation } = useMutation({ 
     mutationFn: moveTaskDownApi, 
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] as const });
+      queryClient.invalidateQueries({ queryKey: ['tasks', queryParams] as const });
     },
   });
   
   const { mutate: deleteTaskMutation } = useMutation({ 
     mutationFn: deleteTaskApi, 
     onSuccess: (deletedTaskId) => {
-      queryClient.setQueryData<Task[]>(['tasks'], (old) => old ? old.filter((task) => task.id !== deletedTaskId) : []);
+      queryClient.setQueryData<Task[]>(['tasks', queryParams], (old) => old ? old.filter((task) => task.id !== deletedTaskId) : []);
     },
   });
   
   const { mutate: deleteAllTaskMutation } = useMutation({ 
     mutationFn: deleteAllTaskApi, 
     onSuccess: () => {
-      queryClient.setQueryData<Task[]>(['tasks'], []);
+      queryClient.setQueryData<Task[]>(['tasks', queryParams], []);
     },
   });
   
-  const { data: tasks = [], isLoading, error } = useQuery({
-    queryKey: ['tasks'],
+  const { data: tasks = [], isLoading, error } = useQuery<Task[], Error, Task[], ['tasks', FetchTasksReq]>({
+    queryKey: ['tasks', queryParams],
     queryFn: fetchTasksApi,
     refetchOnWindowFocus: false,
     staleTime: 10000,
+    enabled: typeof boardId === 'number' && !isNaN(boardId),
   });
 
   const tasksRef = useRef<Task[]>(tasks);
@@ -71,8 +79,8 @@ const Tasks = () => {
 
   if (isLoading) return <p>Loading...</p>;
   if (error) return <p>Error: {(error as Error).message}</p>;
-  setTasks(() => tasks)
-  console.log(tasks)
+  // setTasks(() => tasks)
+  // console.log(tasks)
 
   const startTimer = (id: number) => {
     const currTask = tasks.find(task => task.id === id);
@@ -108,7 +116,7 @@ const Tasks = () => {
     const newTasks = [...tasks]
     const currTask = newTasks[index]
     if (currTask.title && currTask.body) {
-      updateTaskMutation({ id: currTask.id, title: title, body: body, running: false, seconds: 0, priority: currTask.priority });
+      updateTaskMutation({ id: currTask.id, board_id: boardId!, title: title, body: body, running: false, seconds: 0, priority: currTask.priority });
       setTitle('');
       setBody('');
       setIsModalOpen(false);
@@ -123,7 +131,7 @@ const Tasks = () => {
     const newTasks = [...tasks]
     const currTask = newTasks[index]
     const prevTask = newTasks[index-1]
-    moveTaskUpMutation({move_up_task: {...currTask, priority: prevTask.priority}, move_down_task: {...prevTask, priority: currTask.priority}});
+    moveTaskUpMutation( { board_id: boardId!, move_up_task: {...currTask, priority: prevTask.priority}, move_down_task: {...prevTask, priority: currTask.priority}});
   };
   
   const handleMoveDownTask = (index: number) => {
@@ -133,14 +141,14 @@ const Tasks = () => {
     const newTasks = [...tasks]
     const currTask = newTasks[index]
     const nextTask = newTasks[index+1]
-    moveTaskDownMutation({move_down_task: {...currTask, priority: nextTask.priority}, move_up_task: {...nextTask, priority: currTask.priority}});
+    moveTaskDownMutation({board_id: boardId!, move_down_task: {...currTask, priority: nextTask.priority}, move_up_task: {...nextTask, priority: currTask.priority}});
   };
   
   const handleDeleteTask = (index: number) => {
     const newTasks = [...tasks]
     const currTask = newTasks[index]
     if (currTask.title && currTask.body) {
-      deleteTaskMutation(currTask.id);
+      deleteTaskMutation({boardId: boardId!, taskId: currTask.id});
       setTitle('');
       setBody('');
       setIsDeleteModalOpen(false);
@@ -148,7 +156,7 @@ const Tasks = () => {
   };
 
   const handleDeleteAllTask = () => {
-    deleteAllTaskMutation();
+    deleteAllTaskMutation({ boardId: boardId!} );
     setIsDeleteAllModalOpen(false);
   };
 

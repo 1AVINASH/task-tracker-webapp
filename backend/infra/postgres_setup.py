@@ -2,9 +2,6 @@ import os
 from dotenv import load_dotenv
 
 import databases
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
 load_dotenv()
 
 DB_USER = os.getenv("DB_USER")

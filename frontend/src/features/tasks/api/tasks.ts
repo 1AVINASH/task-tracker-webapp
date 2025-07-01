@@ -1,18 +1,38 @@
 import { Task } from '../../../store/tasks'
-const BASE_URL = 'http://localhost:8000';
+import { QueryFunctionContext } from '@tanstack/react-query';
+
+const BASE_URL = 'http://localhost:8000/api';
 
 type TaskId = {
   id: number
 }
 
+type TaskWithoutBoardId = Omit<Task, 'board_id'>
+
 export type moveTaskUpReq = {
-    move_up_task: Task
-    move_down_task: Task
+    board_id: number
+    move_up_task: TaskWithoutBoardId
+    move_down_task: TaskWithoutBoardId
 }
 
 export type moveTaskDownReq = {
-    move_up_task: Task
-    move_down_task: Task
+    board_id: number
+    move_up_task: TaskWithoutBoardId
+    move_down_task: TaskWithoutBoardId
+}
+
+
+export type FetchTasksReq = {
+    boardId: number
+}
+
+type DeleteTaskReq = {
+    boardId: number
+    taskId: number
+}
+
+type DeleteAllTaskReq = {
+    boardId: number
 }
 
 type FetchTasksRes = {
@@ -44,8 +64,16 @@ type DeleteTaskRes = {
 }
 
 // Fetch all tasks
-export const fetchTasksApi = async (): Promise<Task[]> => {
-  const res = await fetch(`${BASE_URL}/tasks`);
+export const fetchTasksApi = async (context: QueryFunctionContext<['tasks', FetchTasksReq]>): Promise<Task[]> => {
+  const [_key, task] = context.queryKey;
+
+  if (typeof task.boardId !== 'number' || isNaN(task.boardId)) {
+    throw new Error("Board ID is required for fetching tasks.");
+  }
+  console.log(`Task ${task}`)
+  console.log(task)
+
+  const res = await fetch(`${BASE_URL}/boards/${task.boardId}/tasks`);
   if (!res.ok) throw new Error("Failed to fetch tasks");
   const json: FetchTasksRes = await res.json();
   
@@ -55,7 +83,7 @@ export const fetchTasksApi = async (): Promise<Task[]> => {
 
 // Create a new task
 export const createTaskApi = async (task: Omit<Task, 'id'>): Promise<Task> => {
-  const res = await fetch(`${BASE_URL}/tasks`, {
+  const res = await fetch(`${BASE_URL}/boards/${task.board_id}/tasks`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(task),
@@ -69,7 +97,7 @@ export const createTaskApi = async (task: Omit<Task, 'id'>): Promise<Task> => {
 
 // Update a new task
 export const updateTaskApi = async (task: Task): Promise<Task> => {
-  const res = await fetch(`${BASE_URL}/tasks/${task.id}`, {
+  const res = await fetch(`${BASE_URL}/boards/${task.board_id}/tasks/${task.id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(task),
@@ -82,7 +110,7 @@ export const updateTaskApi = async (task: Task): Promise<Task> => {
 
 // Move a task up
 export const moveTaskUpApi = async (tasks: moveTaskUpReq): Promise<void> => {
-  const res = await fetch(`${BASE_URL}/tasks/move-up`, {
+  const res = await fetch(`${BASE_URL}/boards/${tasks.board_id}/tasks/move-up`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(tasks),
@@ -93,7 +121,7 @@ export const moveTaskUpApi = async (tasks: moveTaskUpReq): Promise<void> => {
 
 // Move a task down
 export const moveTaskDownApi = async (tasks: moveTaskDownReq): Promise<void> => {
-  const res = await fetch(`${BASE_URL}/tasks/move-down`, {
+  const res = await fetch(`${BASE_URL}/boards/${tasks.board_id}/tasks/move-down`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(tasks),
@@ -103,8 +131,8 @@ export const moveTaskDownApi = async (tasks: moveTaskDownReq): Promise<void> => 
 };
 
 // Delete a task
-export const deleteTaskApi = async (taskId: number): Promise<number> => {
-  const res = await fetch(`${BASE_URL}/tasks/${taskId}`, {
+export const deleteTaskApi = async (task: DeleteTaskReq): Promise<number> => {
+  const res = await fetch(`${BASE_URL}/boards/${task.boardId}/tasks/${task.taskId}`, {
     method: "DELETE",
     // headers: { "Content-Type": "application/json" },
     // body: JSON.stringify(task),
@@ -116,8 +144,8 @@ export const deleteTaskApi = async (taskId: number): Promise<number> => {
 };
 
 // Delete all tasks
-export const deleteAllTaskApi = async (): Promise<void> => {
-  const res = await fetch(`${BASE_URL}/tasks/all`, {
+export const deleteAllTaskApi = async (task: DeleteAllTaskReq): Promise<void> => {
+  const res = await fetch(`${BASE_URL}/boards/${task.boardId}/tasks/all`, {
     method: "DELETE",
     // headers: { "Content-Type": "application/json" },
     // body: JSON.stringify(task),

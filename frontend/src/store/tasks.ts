@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 export type Task = {
   id: number
+  board_id: number
   title: string
   body: string
   priority: number

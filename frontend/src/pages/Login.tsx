@@ -1,5 +1,5 @@
 // src/features/home/pages/Home.tsx
-const Login = () => {
+const LoginPage = () => {
   return (
     <div>
       <h1 className="text-2xl font-bold">Welcome to the Login Page</h1>
@@ -7,4 +7,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginPage;

@@ -1,13 +1,15 @@
 // src/routes/AppRoutes.tsx
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Home } from '../features/home';
-import { Login } from '../features/home';
+import { HomePage } from '../features/tasks';
+import { LoginPage } from '../features/tasks';
+import { TasksPage } from '../features/tasks';
 
 const AppRoutes = () => (
   <Router>
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<HomePage />} />
+      <Route path=":boardId/tasks" element={<TasksPage />} />
+      <Route path="/login" element={<LoginPage />} />
     </Routes>
   </Router>
 );

@@ -6,7 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from constants.defaults import DEFAULT_HOST, DEFAULT_PORT
 from utility.middlewares import LoggingMiddleware
-from tasks.routes import tasks_router
+from services.tasks.routes import tasks_router
+from services.boards.routes import boards_router
 from infra.postgres_setup import db
 
 app = FastAPI(debug=True)
@@ -22,7 +23,8 @@ app.add_middleware(
 )
 
 # Add routes
-app.include_router(tasks_router)
+app.include_router(boards_router, prefix="/api")
+app.include_router(tasks_router, prefix="/api/boards/{board_id}")
 
 @app.on_event("startup")
 async def startup():

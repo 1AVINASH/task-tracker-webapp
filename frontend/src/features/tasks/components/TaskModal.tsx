@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 
-import Modal, {ModalProps} from './Modal'
+import Modal, {ModalProps} from '../../../components/Modals/Modal'
+import { useParams } from 'react-router-dom';
 import useGlobalTaskStore, { Task } from '../../../store/tasks'
 
 type TaskModalProps = {
@@ -11,6 +12,7 @@ type TaskModalProps = {
 
 const TaskModal = ({ isOpen, title, body }: TaskModalProps) => {
   if (!isOpen) return null;
+  const { boardId } = useParams();
   const isModalOpen = useGlobalTaskStore((state) => state.isModalOpen)
   const setIsModalOpen = useGlobalTaskStore((state) => state.setIsModalOpen)
   const [newTitle, setTitle] = useState(title);
@@ -20,7 +22,7 @@ const TaskModal = ({ isOpen, title, body }: TaskModalProps) => {
 
   const handleAddTask = () => {
     if (title && body) {
-      setTasks(() => [...tasks, { id: 1, title, body, seconds: 0, running: false, priority: tasks.length + 1 }]);
+      // setTasks(() => [...tasks, { id: 1, board_id: boardId, title, body, seconds: 0, running: false, priority: tasks.length + 1 }]);
       setTitle('');
       setBody('');
       setIsModalOpen(false);
