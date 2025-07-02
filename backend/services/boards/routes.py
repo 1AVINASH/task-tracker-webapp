@@ -6,6 +6,7 @@ from fastapi import APIRouter
 from utility.logger import app_logger
 from dtos.output import DefaultOutput
 
+from services.boards.constants import DEFAULT_THEME
 from services.boards.models import Board
 from services.boards.dtos import Input
 from services.boards.repository import RepositoryBoards
@@ -25,6 +26,8 @@ async def get(board_id: int):
 @boards_router.post("", response_model=DefaultOutput)
 async def create(payload: Input.CreateBoards):
     app_logger.info(f"Received payload for creating board: {payload}")
+    if not payload.theme:
+        payload.theme = DEFAULT_THEME
     data = await RepositoryBoards.add_board(payload)
     return DefaultOutput(message=f"Board Created successfully", data=data)
 

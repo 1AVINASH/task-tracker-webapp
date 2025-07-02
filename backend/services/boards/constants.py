@@ -1,0 +1,1 @@
+DEFAULT_THEME = "theme-1.jpg"
