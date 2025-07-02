@@ -11,6 +11,7 @@ sqlalchemy = "*"
 python-dotenv = "*"
 databases = "*"
 asyncpg = "*"
+python-multipart = "*"
 
 [dev-packages]
 

@@ -14,7 +14,10 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
         # Log request
         body = await request.body()
-        app_logger.info(f"Request: {request.method} {request.url.path} - Body: {body.decode('utf-8') or 'None'}")
+        try:
+            app_logger.info(f"Request: {request.method} {request.url.path} - Body: {body.decode('utf-8') or 'None'}")
+        except Exception as e:
+            print(e)
 
         response: Response = await call_next(request)
 

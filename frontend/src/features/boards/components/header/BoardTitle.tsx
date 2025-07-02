@@ -27,7 +27,7 @@ const BoardTitle = () => {
 
   const handleAddBoard = () => {
     if (title) {
-      addBoard({ title: title, theme: "test theme", last_updated_at: "testUpdatedAt" });
+      addBoard({ title: title, theme: "Gemini_Generated_Image_xiinh7xiinh7xiin.png", last_updated_at: "testUpdatedAt" });
       setTitle('');
       setIsCreateBoardModalOpen(false);
     }

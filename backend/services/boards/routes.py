@@ -1,16 +1,20 @@
+import os
+from typing import List, Any
+
 from fastapi import APIRouter
 
 from utility.logger import app_logger
 from dtos.output import DefaultOutput
 
+from services.boards.models import Board
 from services.boards.dtos import Input
 from services.boards.repository import RepositoryBoards
 
-boards_router = APIRouter(prefix="/boards", tags=["tasks"])
+boards_router = APIRouter(prefix="/boards", tags=["boards"])
 
 @boards_router.get("", response_model=DefaultOutput)
 async def get():
-    data = await RepositoryBoards.get_all_boards()
+    data: List[Any] = await RepositoryBoards.get_all_boards()    
     return DefaultOutput(message=f"Boards fetched successfully", data=data)
 
 @boards_router.get("/{board_id}", response_model=DefaultOutput)
