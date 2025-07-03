@@ -2,4 +2,6 @@ node_modules
 **.env
 **.VSCodeCounter/**
 **nohup.out
+**/nohup.out
 **__pycache__**
+**/__pycache__/

@@ -7,3 +7,4 @@ class Task(BaseModel):
     priority: int
     running: bool
     seconds: int
+    status: str

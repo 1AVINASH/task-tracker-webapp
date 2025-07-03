@@ -22,3 +22,6 @@ CREATE TRIGGER update_boards_last_updated_at
 BEFORE UPDATE ON boards
 FOR EACH ROW
 EXECUTE FUNCTION update_last_updated_at_column();
+
+CREATE TYPE tasks_status AS ENUM('DELETED', 'COMPLETED', 'IN_PROGRESS');
+ALTER TABLE tasks ADD COLUMN status tasks_status;

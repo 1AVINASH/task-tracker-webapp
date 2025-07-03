@@ -22,9 +22,12 @@ const Project = () => {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const queryClient = useQueryClient();
+  const isViewingDeleted = useGlobalTaskStore((state) => state.isViewingDeleted)
+  const setIsViewingDeleted = useGlobalTaskStore((state) => state.setIsViewingDeleted)
   const setIsDeleteAllModalOpen = useGlobalTaskStore((state) => state.setIsDeleteAllModalOpen)
   const queryParams: FetchTasksReq = {
       boardId: boardId!, // Assuming `enabled` handles undef/NaN check
+      isViewingDeleted: isViewingDeleted!, // Assuming `enabled` handles undef/NaN check
   };
 
   const { mutate: addTask } = useMutation({ 
@@ -37,24 +40,32 @@ const Project = () => {
   const handleAddTask = () => {
     if (title && body) {
       const requiredPriority = tasks.length === 0 ? 0 : tasks[tasks.length-1].priority + 1
-      addTask({ title: title, board_id: boardId!, body: body, running: false, seconds: 0, priority: requiredPriority });
-      // setTasks(() => [...tasks, { id: tasks.length+1, title, body, running: false, seconds: 0, priority: tasks.length + 1 }]);
+      addTask({ title: title, board_id: boardId!, body: body, running: false, seconds: 0, priority: requiredPriority, status: "" });
       setTitle('');
       setBody('');
       setIsModalOpen(false);
     }
   };
-  
-  const handleBoardClick = () => {
-    
-  };
+
+  const handleViewingDeleted = (newViewingDeleted: boolean) => {
+    setIsViewingDeleted(newViewingDeleted)
+    queryParams.isViewingDeleted = newViewingDeleted
+    queryClient.invalidateQueries({ queryKey: ['tasks', queryParams] as const });
+    console.log(`Is viewing deleted is being set to ${newViewingDeleted}`)
+  }
 
   return (
     <div className="bg-[#424242] p-4 flex items-center gap-4  w-[1000px] h-[200px]">
-      <div className="w-1/5 h-4/5 ">
+      <div className="w-1/5 space-y-2 h-[170px] flex flex-col p-4">
         <Link to={`/`} className="bg-[#1E5631] text-white rounded font-semibold border border-[#e3e3e3] flex justify-center items-center top-0 h-1/2">
             Boards
         </Link>
+        {
+          isViewingDeleted ?   
+          <button className="bg-[#1E5631] text-white w-full h-1/2 rounded font-semibold border border-[#e3e3e3]" onClick={() => handleViewingDeleted(false)}>View Working</button>
+          :
+          <button className="bg-[#910000] text-white w-full h-1/2 rounded font-semibold border border-[#e3e3e3]" onClick={() => handleViewingDeleted(true)}>View Deleted</button>
+        }
       </div>
       <p className="bg-[#202020] text-2xl underline text-[#e3e3e3] p-2.5 font-semibold pl-4 h-4/5 w-3/5 flex justify-center items-center">{currentBoard ? currentBoard.title : "TODO"}</p>
       <div className="flex flex-col space-y-2 w-1/5 h-[170px] p-4">

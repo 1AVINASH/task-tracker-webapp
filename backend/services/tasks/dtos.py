@@ -19,6 +19,7 @@ class Input:
         priority: int
         running: bool
         seconds: int
+        status: str
     
     class MoveUpTask(BaseModel):
         move_up_task: Task

@@ -5,10 +5,15 @@ import useGlobalTaskStore, { Task } from '../../../store/tasks'
 import useGlobalBoardsStore, { Board } from '../../../store/boards'
 import shallow from 'zustand/shallow'
 import Modal from '../../../components/Modals/Modal'
-import { fetchTasksApi, updateTaskApi, deleteTaskApi, moveTaskUpApi, moveTaskDownApi, deleteAllTaskApi, FetchTasksReq } from '../api/tasks'
+import { fetchTasksApi, updateTaskApi, deleteTaskApi, moveTaskUpApi, moveTaskDownApi, deleteAllTaskApi, FetchTasksReq, fetchDeletedTasksApi, FetchTasksByStatusApi } from '../api/tasks'
 import { formatSecondsToHHMMSS } from '../../../utils/DateTimeUtils'
 import { useParams } from 'react-router-dom';
 
+export const viewToValueStatusMap = new Map([
+  ["COMPLETED", 'Completed'],
+  ["IN_PROGRESS", 'In Progress'],
+  ["DELETED", 'Deleted'],
+])
 
 const Tasks = () => {
   const { boardId: boardIdParam } = useParams();
@@ -18,6 +23,8 @@ const Tasks = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const isDeleteAllModalOpen = useGlobalTaskStore((state) => state.isDeleteAllModalOpen)
   const setIsDeleteAllModalOpen = useGlobalTaskStore((state) => state.setIsDeleteAllModalOpen)
+  const isViewingDeleted = useGlobalTaskStore((state) => state.isViewingDeleted)
+  const setIsViewingDeleted = useGlobalTaskStore((state) => state.setIsViewingDeleted)
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [currIndex, setIndex] = useState(-1);
@@ -25,8 +32,9 @@ const Tasks = () => {
   const queryClient = useQueryClient();
   const queryParams: FetchTasksReq = {
       boardId: boardId!, // Assuming `enabled` handles undef/NaN check
+      isViewingDeleted: isViewingDeleted!, // Assuming `enabled` handles undef/NaN check
   };
-  
+  console.log(`Value of isViewingDeleted is ${isViewingDeleted}`)
   const { mutate: updateTaskMutation } = useMutation({ 
     mutationFn: updateTaskApi, 
     onSuccess: (updatedTask) => {
@@ -62,10 +70,10 @@ const Tasks = () => {
       queryClient.setQueryData<Task[]>(['tasks', queryParams], []);
     },
   });
-  
+
   const { data: tasks = [], isLoading, error } = useQuery<Task[], Error, Task[], ['tasks', FetchTasksReq]>({
     queryKey: ['tasks', queryParams],
-    queryFn: fetchTasksApi,
+    queryFn: (queryParams.isViewingDeleted ? fetchDeletedTasksApi : fetchTasksApi),
     refetchOnWindowFocus: false,
     staleTime: 10000,
     enabled: typeof boardId === 'number' && !isNaN(boardId),
@@ -79,8 +87,6 @@ const Tasks = () => {
 
   if (isLoading) return <p>Loading...</p>;
   if (error) return <p>Error: {(error as Error).message}</p>;
-  // setTasks(() => tasks)
-  // console.log(tasks)
 
   const startTimer = (id: number) => {
     const currTask = tasks.find(task => task.id === id);
@@ -116,10 +122,23 @@ const Tasks = () => {
     const newTasks = [...tasks]
     const currTask = newTasks[index]
     if (currTask.title && currTask.body) {
-      updateTaskMutation({ id: currTask.id, board_id: boardId!, title: title, body: body, running: false, seconds: 0, priority: currTask.priority });
+      updateTaskMutation({ id: currTask.id, board_id: boardId!, title: title, body: body, running: false, seconds: 0, priority: currTask.priority, status: currTask.status });
       setTitle('');
       setBody('');
       setIsModalOpen(false);
+    }
+  };
+  
+  const handleTaskStatusChange = (index: number, newStatus: string) => {
+    const newTasks = [...tasks]
+    const currTask = newTasks[index]
+    if (currTask.title && currTask.body) {
+      updateTaskMutation({ id: currTask.id, board_id: currTask.board_id!, title: currTask.title, body: currTask.body, running: currTask.running, seconds: currTask.seconds, priority: currTask.priority, status: newStatus });
+      setTitle('');
+      setBody('');
+      if (isModalOpen) {
+        setIsModalOpen(false);
+      }
     }
   };
   
@@ -194,28 +213,47 @@ const Tasks = () => {
           <div className="rounded mb-3 p-3 bg-[#202020] text-white">
             <div  className="ml-2">
             <h1 className="text-2xl font-semibold mb-2">p{index}: {task.title}</h1>
+            <div className="flex">
+            <p className="text-xs mb-2">Status: &nbsp;</p>
+            <p className="underline text-xs mb-2"> {viewToValueStatusMap.get(task.status)}</p>
+            </div>
             <p>{task.body}</p>
           </div>
-          <button className="m-1 bg-[#424242] p-3 text-white rounded" onClick={() => editTask(index)}> Edit </button>
-          <button className="m-1 bg-[#424242] p-3 text-white rounded" onClick={() => handleMoveUpTask(index)}> Move Up </button>
-          <button className="m-1 bg-[#424242] p-3 text-white rounded"  onClick={() => handleMoveDownTask(index)}> Move Down </button>
-          {!task.running ? (
-            <button
-              onClick={() => startTimer(task.id)}
-              className="m-1 bg-[#1E5631] p-3 text-white rounded"
-            >
-              Start Timer
-            </button>
-          ) : (
-            <button
-              onClick={() => stopTimer(task.id)}
-              className="m-1 bg-[#910000] p-3 text-white rounded"
-            >
-              Stop Timer
-            </button>
-          )}
-          <button className="m-1 bg-[#910000] p-3 text-white rounded" onClick={() => deleteTaskUI(index)}> Delete </button>
-          <span className="bg-[#910000] p-3.5 pb-4 text-white rounded">Time Taken: {formatSecondsToHHMMSS(task.seconds)} </span>
+          {
+            isViewingDeleted ? 
+            (<button className="m-1 bg-[#910000] p-3 text-white rounded" onClick={() => handleTaskStatusChange(index, 'IN_PROGRESS')}> Undelete </button>)
+            :
+            (
+              <div>
+                <button className="m-1 bg-[#424242] p-3 text-white rounded" onClick={() => editTask(index)}> Edit </button>
+                <button className="m-1 bg-[#424242] p-3 text-white rounded" onClick={() => handleMoveUpTask(index)}> Move Up </button>
+                <button className="m-1 bg-[#424242] p-3 text-white rounded"  onClick={() => handleMoveDownTask(index)}> Move Down </button>
+                {
+                  tasks[index].status==='COMPLETED' ? 
+                    <button className="m-1 bg-[#424242] p-3 text-white rounded"  onClick={() => handleTaskStatusChange(index, 'IN_PROGRESS')}> Mark in progress </button> 
+                    : 
+                    <button className="m-1 bg-[#424242] p-3 text-white rounded"  onClick={() => handleTaskStatusChange(index, 'COMPLETED')}> Mark as completed </button>
+                }
+                {!task.running ? (
+                  <button
+                    onClick={() => startTimer(task.id)}
+                    className="m-1 bg-[#1E5631] p-3 text-white rounded"
+                  >
+                    Start Timer
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => stopTimer(task.id)}
+                    className="m-1 bg-[#910000] p-3 text-white rounded"
+                  >
+                    Stop Timer
+                  </button>
+                )}
+                <button className="m-1 bg-[#910000] p-3 text-white rounded" onClick={() => deleteTaskUI(index)}> Delete </button>
+                <span className="bg-[#910000] p-3.5 pb-4 text-white rounded">Time Taken: {formatSecondsToHHMMSS(task.seconds)} </span>
+              </div>
+            )
+          }
           </div>
           </span></li>)}
       </ol>

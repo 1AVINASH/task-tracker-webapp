@@ -12,6 +12,11 @@ async def get(board_id: int):
     data = await RepositoryTasks.get_all_tasks(board_id)
     return DefaultOutput(message=f"Tasks fetched successfully", data=data)
 
+@tasks_router.get("/by-status/{status}", response_model=DefaultOutput)
+async def get(board_id: int, status: str):
+    data = await RepositoryTasks.get_all_tasks_by_status(board_id, status)
+    return DefaultOutput(message=f"Tasks fetched successfully", data=data)
+
 @tasks_router.get("/{task_id}", response_model=DefaultOutput)
 async def get(board_id: int, task_id: int):
     data = await RepositoryTasks.get_task(task_id=task_id)
