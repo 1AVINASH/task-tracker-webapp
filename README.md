@@ -16,6 +16,7 @@ To start this project locally, clone it and then run `bash setup.sh`. You can al
 ## Infra
 * Hosted locally on postgres using docker
 
+---
 
 To create a linux binary from this repositry, follow these steps
 * Install makeself using apt or apt-get
