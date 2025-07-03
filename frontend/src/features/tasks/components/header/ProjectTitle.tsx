@@ -32,8 +32,8 @@ const Project = () => {
 
   const { mutate: addTask } = useMutation({ 
     mutationFn: createTaskApi, 
-    onSuccess: (newTask) => {
-      queryClient.setQueryData<Task[]>(['tasks', queryParams], (old) => (old ? [...old, newTask] : [newTask]));
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', queryParams] as const });
     },
   });
 

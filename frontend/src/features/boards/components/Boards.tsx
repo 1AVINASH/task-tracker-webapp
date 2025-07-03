@@ -81,7 +81,7 @@ const Boards = () => {
     const newBoards = [...boards]
     const currBoard = newBoards[currIndex]
     if (currBoard.title) {
-      updateBoardMutation({ id: currBoard.id, title: title, theme: currentFile!.name });
+      updateBoardMutation({ id: currBoard.id, title: title, theme: currentFile?.name || currBoard.theme });
       setTitle('');
       setIsEditModalOpen(false);
       queryClient.invalidateQueries({ queryKey: ['boards'] as const });
