@@ -221,7 +221,7 @@ const Tasks = () => {
           </div>
           {
             isViewingDeleted ? 
-            (<button className="m-1 bg-[#910000] p-3 text-white rounded" onClick={() => handleTaskStatusChange(index, 'IN_PROGRESS')}> Undelete </button>)
+            (<button className="m-1 bg-[#910000] p-3 text-white rounded" onClick={() => handleTaskStatusChange(index, 'IN_PROGRESS')}> Restore </button>)
             :
             (
               <div>
