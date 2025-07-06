@@ -1,5 +1,6 @@
 // src/features/home/pages/Home.tsx
 import React, { useState, useRef, useEffect } from 'react'
+import { QueryFunctionContext } from '@tanstack/react-query';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import useGlobalTaskStore, { Task } from '../../../store/tasks'
 import useGlobalBoardsStore, { Board } from '../../../store/boards'
@@ -8,6 +9,8 @@ import Modal from '../../../components/Modals/Modal'
 import { fetchTasksApi, updateTaskApi, deleteTaskApi, moveTaskUpApi, moveTaskDownApi, deleteAllTaskApi, FetchTasksReq, fetchDeletedTasksApi, FetchTasksByStatusApi } from '../api/tasks'
 import { formatSecondsToHHMMSS } from '../../../utils/DateTimeUtils'
 import { useParams } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown'; // Import ReactMarkdown
+import remarkGfm from 'remark-gfm';
 
 export const viewToValueStatusMap = new Map([
   ["COMPLETED", 'Completed'],
@@ -122,7 +125,7 @@ const Tasks = () => {
     const newTasks = [...tasks]
     const currTask = newTasks[index]
     if (currTask.title && currTask.body) {
-      updateTaskMutation({ id: currTask.id, board_id: boardId!, title: title, body: body, running: false, seconds: 0, priority: currTask.priority, status: currTask.status });
+      updateTaskMutation({ id: currTask.id, board_id: boardId!, title: title, body: body, running: currTask.running, seconds: currTask.seconds, priority: currTask.priority, status: currTask.status });
       setTitle('');
       setBody('');
       setIsModalOpen(false);
@@ -206,6 +209,11 @@ const Tasks = () => {
     setIsDeleteAllModalOpen(false)
   }
 
+  const cleanedBody = (body: string) => {
+    const bodyAfterCleanup = body ? body.replace(/\u00a0/g, ' ') : ''; 
+    return bodyAfterCleanup
+  }
+
   return (
     <div className="bg-[#424242] w-[1000px] px-4 pb-2">
       <ol>
@@ -217,7 +225,11 @@ const Tasks = () => {
             <p className="text-xs mb-2">Status: &nbsp;</p>
             <p className="underline text-xs mb-2"> {viewToValueStatusMap.get(task.status)}</p>
             </div>
-            <p>{task.body}</p>
+            <div className="prose">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {cleanedBody(task.body)}
+              </ReactMarkdown>
+            </div>
           </div>
           {
             isViewingDeleted ? 
@@ -258,6 +270,7 @@ const Tasks = () => {
           </span></li>)}
       </ol>
       <Modal isOpen={isModalOpen} onClose={() => modalOnClose()}>
+        <div className="relative h-2/3">
         <h2 className="text-lg font-bold mb-4">Edit Task</h2>
         <input
           type="text"
@@ -268,7 +281,7 @@ const Tasks = () => {
         />
         <textarea
           placeholder="Body"
-          className="w-full mb-4 border px-2 py-1 rounded"
+          className="w-full h-full mb-4 border px-2 py-1 rounded"
           value={body}
           onChange={(e) => setBody(e.target.value)}
         />
@@ -278,6 +291,7 @@ const Tasks = () => {
         >
           Save Task
         </button>
+        </div>
       </Modal>
       <Modal isOpen={isDeleteModalOpen} onClose={() => deleteModalOnClose()}>
         <h2 className="text-lg font-bold mb-2">Are you sure you want to delete this task?</h2>

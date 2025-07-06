@@ -1,0 +1,13 @@
+.prose ul {
+  list-style-type: circle;
+  /* Add some left padding to ensure the bullets are visible and indented */
+  padding-left: 1.5em; /* Adjust as needed */
+  /* If you also want to override the default margin-left, you can do so */
+  /* margin-left: 0; */
+}
+
+/* Optional: If you also want to style ordered lists */
+.prose ol {
+  list-style-type: decimal; /* Or 'lower-roman', 'lower-alpha', etc. */
+  padding-left: 1.5em; /* Adjust as needed */
+}
