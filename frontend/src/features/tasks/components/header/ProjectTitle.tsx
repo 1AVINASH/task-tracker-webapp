@@ -73,6 +73,7 @@ const Project = () => {
       <button className="bg-[#910000] text-white h-1/2 rounded font-semibold border border-[#e3e3e3]" onClick={() => setIsDeleteAllModalOpen(true)}>Delete All Tasks</button>
       </div>
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <div className="relative h-2/3">
         <h2 className="text-lg font-bold mb-4">New Task</h2>
         <input
           type="text"
@@ -83,7 +84,7 @@ const Project = () => {
         />
         <textarea
           placeholder="Body"
-          className="w-full mb-4 border px-2 py-1 rounded"
+          className="w-full h-full mb-4 border px-2 py-1 rounded"
           value={body}
           onChange={(e) => setBody(e.target.value)}
         />
@@ -93,6 +94,7 @@ const Project = () => {
         >
           Save Task
         </button>
+        </div>
       </Modal>
     </div>
   );
