@@ -12,6 +12,7 @@ python-dotenv = "*"
 databases = "*"
 asyncpg = "*"
 python-multipart = "*"
+python-dateutil = "*"
 
 [dev-packages]
 

@@ -1,5 +1,10 @@
+import math
+from datetime import datetime, timezone, timedelta
+from dateutil.parser import parse
+
 from infra.postgres_setup import db
 from services.tasks.dtos import Input
+from services.tasks.models import Task
 
 class RepositoryTasks:
     @staticmethod
@@ -7,16 +12,24 @@ class RepositoryTasks:
         query = "SELECT * FROM tasks where board_id=:board_id and status!='DELETED' order by priority"
         values = {"board_id": board_id}
         data = await db.fetch_all(query, values=values)
-
-        return [dict(row) for row in data]
+        data = [dict(row) for row in data]
+        
+        return data
     
     @staticmethod
     async def get_all_tasks_by_status(board_id: int, status: str):
         query = "SELECT * FROM tasks where board_id=:board_id and status=:status order by priority"
         values = {"board_id": board_id, "status": status}
         data = await db.fetch_all(query, values=values)
+        
+        data = [dict(row) for row in data]
+        for idx, task in enumerate(data):
+            if not task["running"]:
+                continue
+            task["seconds"] = task["seconds"] + (datetime.now(timezone.utc)-task["started_at"]).total_seconds()
+            data["idx"] = task
 
-        return [dict(row) for row in data]
+        return data
     
     @staticmethod
     async def get_task(task_id):
@@ -38,9 +51,20 @@ class RepositoryTasks:
     
     @staticmethod
     async def update_task(task: Input.UpdateTasks):
-        query = "UPDATE tasks set title=:title, body=:body, priority=:priority, running=:running, seconds=:seconds, status=:status where id=:id;"
+        previous_task = Task(**(await RepositoryTasks.get_task(task_id=task.id)))
+        if previous_task.running and not task.running:
+            task.started_at = None
+            task.seconds = previous_task.seconds + (datetime.now(timezone.utc) - previous_task.started_at).total_seconds()
+        elif not previous_task.running and task.running:
+            task.started_at = datetime.now()
+            task.seconds = previous_task.seconds
+        else:
+            task.seconds = previous_task.seconds
+        
+        query = "UPDATE tasks set title=:title, body=:body, priority=:priority, running=:running, seconds=:seconds, status=:status, started_at=:started_at where id=:id;"
         values = task.model_dump()
         print(f"Query and values for updating task {query}\n{values}")
+        print(f"Previous task {previous_task}")
         data = await db.execute(query=query, values=values)
 
         return data

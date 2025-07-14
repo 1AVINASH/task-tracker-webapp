@@ -13,10 +13,8 @@ export type Task = {
 
 type GlobalTasksStore = {
   tasks: Task[];
-  // setTasks: (updatedTasks: Task[]) => void;
   isViewingDeleted: boolean;
   setIsViewingDeleted: (isViewingDeleted: boolean) => void;
-  setTasks: (updater: (tasks: Task[]) => Task[]) => void;
   isModalOpen: boolean;
   setIsModalOpen: (isModalOpen: boolean) => void ;
   isDeleteAllModalOpen: boolean;
@@ -29,8 +27,6 @@ const useGlobalTaskStore = create<GlobalTasksStore>((set) => ({
   isDeleteAllModalOpen: false,
   isViewingDeleted: false,
   setIsViewingDeleted: (isViewingDeleted: boolean) => set(() => ({isViewingDeleted})),
-  // setTasks: (updatedTasks: Task[]) => set((state) => ({tasks: updatedTasks})),
-  setTasks: (updater) => set((state) => ({ tasks: updater(state.tasks) })),
   addTask: (task: Task) => set((state) => ({tasks: [...state.tasks, task]})),
   setIsModalOpen: (isModalOpen: boolean) => set(() => ({ isModalOpen })),
   setIsDeleteAllModalOpen: (isDeleteAllModalOpen: boolean) => set(() => ({ isDeleteAllModalOpen }))

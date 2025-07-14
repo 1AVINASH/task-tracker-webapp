@@ -1,5 +1,7 @@
-from pydantic import BaseModel, Field, UUID4
 from typing import Dict, Any, Optional
+from datetime import datetime
+
+from pydantic import BaseModel, Field, UUID4
 
 from services.tasks.models import Task
 
@@ -18,7 +20,8 @@ class Input:
         body: str = Field(...)
         priority: int
         running: bool
-        seconds: int
+        started_at: Optional[datetime] = ""
+        seconds: Optional[float] = 0
         status: str
     
     class MoveUpTask(BaseModel):

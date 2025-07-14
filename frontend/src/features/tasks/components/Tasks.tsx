@@ -21,7 +21,6 @@ export const viewToValueStatusMap = new Map([
 const Tasks = () => {
   const { boardId: boardIdParam } = useParams();
   const boardId = boardIdParam ? parseInt(boardIdParam, 10) : undefined;
-  const setTasks = useGlobalTaskStore((state) => state.setTasks)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const isDeleteAllModalOpen = useGlobalTaskStore((state) => state.isDeleteAllModalOpen)
@@ -37,7 +36,6 @@ const Tasks = () => {
       boardId: boardId!, // Assuming `enabled` handles undef/NaN check
       isViewingDeleted: isViewingDeleted!, // Assuming `enabled` handles undef/NaN check
   };
-  console.log(`Value of isViewingDeleted is ${isViewingDeleted}`)
   const { mutate: updateTaskMutation } = useMutation({ 
     mutationFn: updateTaskApi, 
     onSuccess: (updatedTask) => {
@@ -92,22 +90,44 @@ const Tasks = () => {
   if (error) return <p>Error: {(error as Error).message}</p>;
 
   const startTimer = (id: number) => {
-    const currTask = tasks.find(task => task.id === id);
+    const currentTasksDataInCache = queryClient.getQueryData<Task[]>(['tasks', queryParams]);
+    const currTask = currentTasksDataInCache!.find(task => task.id === id);
     if (!currTask) {
       return
     }
     updateTaskMutation({...currTask, running: true});
-    const newTasks = tasks.map(task => task.id === id ? {...task, running: true}: task)
-    setTasks(() => newTasks);
+    queryClient.setQueryData<Task[]>(['tasks', queryParams], prevTasks => {
+      if (!prevTasks) return []; // Handle case where prevTasks might be undefined
+
+      // Return a new array with the updated task
+      return prevTasks.map(task =>
+        task.id === id ? {...task, running: true} : task
+      );
+    });
+
 
     timers.current[id] = setInterval(() => {
-      const currTask = tasksRef.current.find(task => task.id === id);
+      const currentTasksDataInCache = queryClient.getQueryData<Task[]>(['tasks', queryParams]);
+      const currTask = currentTasksDataInCache!.find(task => task.id === id);
       if (currTask && currTask.running) {
         const updatedTask = {
           ...currTask,
           seconds: currTask.seconds + 1,
         };
-        updateTaskMutation(updatedTask);
+        queryClient.setQueryData<Task[]>(['tasks', queryParams], prevTasks => {
+          if (!prevTasks) return []; // Handle case where prevTasks might be undefined
+
+          // Return a new array with the updated task
+          return prevTasks.map(task =>
+            task.id === id ? updatedTask : task
+          );
+        });
+
+        // Console logs here will reflect the state *before* React processes the update,
+        // because state updates are asynchronous and batched.
+        console.log(`Update scheduled for task ID: ${id}. New tasks are`);
+        console.log(currentTasksDataInCache);
+        console.log(currentTasksDataInCache);
       }
     }, 1000);
   }

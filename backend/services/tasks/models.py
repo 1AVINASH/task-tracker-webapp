@@ -1,3 +1,6 @@
+from datetime import datetime
+from typing import Optional
+
 from pydantic import BaseModel, Field
 
 class Task(BaseModel):
@@ -7,4 +10,5 @@ class Task(BaseModel):
     priority: int
     running: bool
     seconds: int
+    started_at: Optional[datetime] = ""
     status: str

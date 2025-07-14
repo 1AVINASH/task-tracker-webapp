@@ -11,7 +11,6 @@ import { Board } from '../../../../store/boards';
 // src/features/home/components/Banner.tsx
 const BoardTitle = () => {
   const tasks = useGlobalTaskStore((state) => state.tasks)
-  const setTasks = useGlobalTaskStore((state) => state.setTasks)
   const [isCreateBoardModalOpen, setIsCreateBoardModalOpen] = useState(false)
   const [title, setTitle] = useState('');
   const queryClient = useQueryClient();
