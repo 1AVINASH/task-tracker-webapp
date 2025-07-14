@@ -20,7 +20,7 @@ class Input:
         body: str = Field(...)
         priority: int
         running: bool
-        started_at: Optional[datetime] = ""
+        started_at: Optional[datetime] = None
         seconds: Optional[float] = 0
         status: str
     
