@@ -54,12 +54,15 @@ class RepositoryTasks:
         previous_task = Task(**(await RepositoryTasks.get_task(task_id=task.id)))
         if previous_task.running and not task.running:
             task.started_at = None
-            task.seconds = previous_task.seconds + (datetime.now(timezone.utc) - previous_task.started_at).total_seconds()
+            if previous_task.started_at:
+                task.seconds = previous_task.seconds + (datetime.now(timezone.utc) - previous_task.started_at).total_seconds()
         elif not previous_task.running and task.running:
             task.started_at = datetime.now()
             task.seconds = previous_task.seconds
         else:
             task.seconds = previous_task.seconds
+            task.running = previous_task.running
+            task.started_at = previous_task.started_at
         
         query = "UPDATE tasks set title=:title, body=:body, priority=:priority, running=:running, seconds=:seconds, status=:status, started_at=:started_at where id=:id;"
         values = task.model_dump()
