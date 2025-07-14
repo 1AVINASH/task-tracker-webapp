@@ -8,7 +8,7 @@ from services.tasks.models import Task
 class Input:
     class CreateTasks(BaseModel):
         board_id: int = Field(...)
-        title: str = Field(..., min_length=1, max_length=20)
+        title: str = Field(..., min_length=1, max_length=50)
         body: str = Field(...)
         priority: int
         running: bool
@@ -16,7 +16,7 @@ class Input:
     
     class UpdateTasks(BaseModel):
         id: int = Field(...)
-        title: str = Field(..., min_length=1, max_length=20)
+        title: str = Field(..., min_length=1, max_length=50)
         body: str = Field(...)
         priority: int
         running: bool
