@@ -1,6 +1,4 @@
-import { useState } from 'react';
 import {uploadFileApi} from '../api/fileUploader'
-import { upload } from '@testing-library/user-event/dist/upload';
 import useGlobalFileHandlerStore from '../../../store/fileHandler'
 
 const FileUploader = () => {

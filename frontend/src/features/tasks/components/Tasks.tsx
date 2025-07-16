@@ -1,10 +1,7 @@
 // src/features/home/pages/Home.tsx
-import React, { useState, useRef, useEffect, ChangeEvent } from 'react'
-import { QueryFunctionContext } from '@tanstack/react-query';
+import React, { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import useGlobalTaskStore, { Task } from '../../../store/tasks'
-import useGlobalBoardsStore, { Board } from '../../../store/boards'
-import shallow from 'zustand/shallow'
 import Modal from '../../../components/Modals/Modal'
 import { fetchTasksApi, updateTaskApi, deleteTaskApi, moveTaskUpApi, moveTaskDownApi, deleteAllTaskApi, FetchTasksReq, fetchDeletedTasksApi } from '../api/tasks'
 import { formatSecondsToHHMMSS } from '../../../utils/DateTimeUtils'

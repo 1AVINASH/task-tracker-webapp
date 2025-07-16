@@ -1,9 +1,8 @@
 import React, {useState} from 'react'
 import useGlobalTaskStore, { Task } from '../../../../store/tasks'
 import Modal from '../../../../components/Modals/Modal'
-import { fetchBoardsApi, createBoardApi } from '../../api/boards'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Board } from '../../../../store/boards';
+import { createBoardApi } from '../../api/boards'
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 
 // import TaskModal from './TaskModal'

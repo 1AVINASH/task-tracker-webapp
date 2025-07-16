@@ -1,5 +1,5 @@
 import { QueryFunctionContext } from '@tanstack/react-query';
-import useGlobalTaskStore, { Task } from '../../../store/tasks'
+import { Task } from '../../../store/tasks'
 
 const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 

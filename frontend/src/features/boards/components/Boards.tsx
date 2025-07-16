@@ -1,6 +1,6 @@
 // src/features/home/pages/Home.tsx
-import React, { useState, useRef, useEffect } from 'react'
-import useGlobalBoardsStore, { Board } from '../../../store/boards'
+import React, { useState, useEffect } from 'react'
+import useGlobalBoardsStore from '../../../store/boards'
 import useGlobalFileHandlerStore from '../../../store/fileHandler'
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -10,7 +10,6 @@ import Modal from '../../../components/Modals/Modal'
 import { FiEdit } from 'react-icons/fi'
 import FileUploader from './FileUploader'
 import {getFileApi} from '../api/fileUploader'
-import { exec } from 'child_process';
 
 const Boards = () => {
   const setBoards = useGlobalBoardsStore((state) => state.setBoards)
