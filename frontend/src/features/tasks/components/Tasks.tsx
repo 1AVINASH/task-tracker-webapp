@@ -6,7 +6,7 @@ import useGlobalTaskStore, { Task } from '../../../store/tasks'
 import useGlobalBoardsStore, { Board } from '../../../store/boards'
 import shallow from 'zustand/shallow'
 import Modal from '../../../components/Modals/Modal'
-import { fetchTasksApi, updateTaskApi, deleteTaskApi, moveTaskUpApi, moveTaskDownApi, deleteAllTaskApi, FetchTasksReq, fetchDeletedTasksApi, FetchTasksByStatusApi } from '../api/tasks'
+import { fetchTasksApi, updateTaskApi, deleteTaskApi, moveTaskUpApi, moveTaskDownApi, deleteAllTaskApi, FetchTasksReq, fetchDeletedTasksApi } from '../api/tasks'
 import { formatSecondsToHHMMSS } from '../../../utils/DateTimeUtils'
 import { useParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown'; // Import ReactMarkdown
