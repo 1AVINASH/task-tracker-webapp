@@ -1,6 +1,5 @@
 import { Board } from '../../../store/boards'
-const BASE_URL = 'http://localhost:8000/api';
-
+const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 type BoardId = {
   id: number
 }

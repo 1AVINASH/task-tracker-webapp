@@ -4,9 +4,7 @@ export type ModalProps = {
 };
 
 const KebabMenu = ({ isOpen, children }: ModalProps) => {
-  console.log(`Trying to Open Kebab Menu. Value of isOpen ${isOpen}`)
   if (!isOpen) return null;
-  console.log(`Opening Kebab Menu`)
 
   return (
     <div>

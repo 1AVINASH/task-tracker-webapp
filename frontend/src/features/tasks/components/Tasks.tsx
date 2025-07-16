@@ -1,5 +1,5 @@
 // src/features/home/pages/Home.tsx
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, ChangeEvent } from 'react'
 import { QueryFunctionContext } from '@tanstack/react-query';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import useGlobalTaskStore, { Task } from '../../../store/tasks'
@@ -83,6 +83,25 @@ const Tasks = () => {
   const tasksRef = useRef<Task[]>(tasks);
 
   useEffect(() => {
+    if (!isModalOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.key === 'Enter') {
+        // Prevents the default action of adding a new line in the textarea
+        event.preventDefault(); 
+
+        handleEditTask(currIndex);
+      }
+    };
+    // Add event listener when the modal is open
+    document.addEventListener('keydown', handleKeyDown);
+
+    // Cleanup: remove event listener when the modal is closed
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isModalOpen, title, body]); // Dependencies for the effect
+
+  useEffect(() => {
     tasksRef.current = tasks;
   }, [tasks]);
 
@@ -125,9 +144,6 @@ const Tasks = () => {
 
         // Console logs here will reflect the state *before* React processes the update,
         // because state updates are asynchronous and batched.
-        console.log(`Update scheduled for task ID: ${id}. New tasks are`);
-        console.log(currentTasksDataInCache);
-        console.log(currentTasksDataInCache);
       }
     }, 1000);
   }
@@ -142,6 +158,9 @@ const Tasks = () => {
   };
 
   const handleEditTask = (index: number) => {
+    if (!isModalOpen) {
+      return
+    }
     const newTasks = [...tasks]
     const currTask = newTasks[index]
     if (currTask.title && currTask.body) {
@@ -169,7 +188,6 @@ const Tasks = () => {
     if (index==0) {
       return
     }
-    console.log(`Handling move up task for index ${index}`)
     const newTasks = [...tasks]
     const currTask = newTasks[index]
     const prevTask = newTasks[index-1]

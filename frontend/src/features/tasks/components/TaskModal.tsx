@@ -29,6 +29,7 @@ const TaskModal = ({ isOpen, title, body }: TaskModalProps) => {
 
   return (
     <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <div className="">
       <h2 className="text-lg font-bold mb-4">New Task</h2>
       <input
         type="text"
@@ -49,6 +50,7 @@ const TaskModal = ({ isOpen, title, body }: TaskModalProps) => {
       >
         Save Task
       </button>
+      </div>
     </Modal>
   );
 };

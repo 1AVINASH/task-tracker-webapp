@@ -21,10 +21,8 @@ const FileUploader = () => {
 
     const formData = new FormData();
     formData.append('file', currentFile);
-    console.log(`Fileee`)
-    console.log(currentFile.name)
 
-    const fileName = await uploadFileApi(formData)
+    await uploadFileApi(formData)
     setCurrentFileUrlFromFile(currentFile)
     setIsFileUploaderOpen(false)
   };

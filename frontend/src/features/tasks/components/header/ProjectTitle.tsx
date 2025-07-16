@@ -1,5 +1,5 @@
 import { title } from 'process';
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import useGlobalTaskStore, { Task } from '../../../../store/tasks'
 import { Link } from 'react-router-dom';
 import Modal from '../../../../components/Modals/Modal'
@@ -30,6 +30,25 @@ const Project = () => {
       isViewingDeleted: isViewingDeleted!, // Assuming `enabled` handles undef/NaN check
   };
 
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.key === 'Enter') {
+        // Prevents the default action of adding a new line in the textarea
+        event.preventDefault(); 
+
+        handleAddTask();
+      }
+    };
+    // Add event listener when the modal is open
+    document.addEventListener('keydown', handleKeyDown);
+
+    // Cleanup: remove event listener when the modal is closed
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isModalOpen, title, body]); // Dependencies for the effect
+
   const { mutate: addTask } = useMutation({ 
     mutationFn: createTaskApi, 
     onSuccess: () => {
@@ -39,6 +58,10 @@ const Project = () => {
 
   const handleAddTask = () => {
     if (title && body) {
+      var tasks = queryClient.getQueryData<Task[]>(['tasks', queryParams])
+      if (!tasks) {
+        tasks = [];
+      }
       const requiredPriority = tasks.length === 0 ? 0 : tasks[tasks.length-1].priority + 1
       addTask({ title: title, board_id: boardId!, body: body, running: false, seconds: 0, priority: requiredPriority, status: "" });
       setTitle('');
@@ -51,7 +74,6 @@ const Project = () => {
     setIsViewingDeleted(newViewingDeleted)
     queryParams.isViewingDeleted = newViewingDeleted
     queryClient.invalidateQueries({ queryKey: ['tasks', queryParams] as const });
-    console.log(`Is viewing deleted is being set to ${newViewingDeleted}`)
   }
 
   return (
@@ -72,7 +94,7 @@ const Project = () => {
       <button className="bg-[#1E5631] text-white h-1/2 rounded font-semibold border border-[#e3e3e3]" onClick={() => setIsModalOpen(true)}>Add Task</button>
       <button className="bg-[#910000] text-white h-1/2 rounded font-semibold border border-[#e3e3e3]" onClick={() => setIsDeleteAllModalOpen(true)}>Delete All Tasks</button>
       </div>
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} height={500}>
         <div className="relative h-2/3">
         <h2 className="text-lg font-bold mb-4">New Task</h2>
         <input

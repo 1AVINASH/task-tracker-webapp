@@ -39,6 +39,7 @@ const BoardTitle = () => {
       <button className="bg-[#1E5631] text-white h-1/2 rounded font-semibold border border-[#e3e3e3]" onClick={() => setIsCreateBoardModalOpen(true)}>Add Board</button>
       </div>
       <Modal isOpen={isCreateBoardModalOpen} onClose={() => setIsCreateBoardModalOpen(false)}>
+        <div className="h-1/5">
         <h2 className="text-lg font-bold mb-4">New Board</h2>
         <input
           type="text"
@@ -53,6 +54,7 @@ const BoardTitle = () => {
         >
           Save Board
         </button>
+        </div>
       </Modal>
     </div>
   );

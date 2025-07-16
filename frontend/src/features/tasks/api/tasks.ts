@@ -1,7 +1,7 @@
 import { QueryFunctionContext } from '@tanstack/react-query';
 import useGlobalTaskStore, { Task } from '../../../store/tasks'
 
-const BASE_URL = 'http://localhost:8000/api';
+const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 type TaskId = {
   id: number
@@ -70,13 +70,10 @@ export const fetchDeletedTasksApi = async (context: QueryFunctionContext<['tasks
   if (typeof task.boardId !== 'number' || isNaN(task.boardId)) {
     throw new Error("Board ID is required for fetching tasks.");
   }
-  console.log(`Task ${task}`)
-  console.log(task)
 
   const res = await fetch(`${BASE_URL}/boards/${task.boardId}/tasks/by-status/DELETED`);
   if (!res.ok) throw new Error("Failed to fetch deleted tasks");
   const json: FetchTasksRes = await res.json();
-  console.log(`Fetching deleted tasks ${json.data}`)
   
   return json.data;
 };
@@ -89,35 +86,12 @@ export const fetchTasksApi = async (context: QueryFunctionContext<['tasks', Fetc
   if (typeof task.boardId !== 'number' || isNaN(task.boardId)) {
     throw new Error("Board ID is required for fetching tasks.");
   }
-  console.log(`Task ${task}`)
-  console.log(task)
 
   const res = await fetch(`${BASE_URL}/boards/${task.boardId}/tasks`);
   if (!res.ok) throw new Error("Failed to fetch tasks");
   const json: FetchTasksRes = await res.json();
-  console.log(`Fetching normal tasks ${json.data}`)
   
   return json.data;
-};
-
-// Fetch all tasks
-export const FetchTasksByStatusApi = async (context: QueryFunctionContext<['tasks', FetchTasksReq]>): Promise<Task[]> => {
-  // const isViewingDeleted = useGlobalTaskStore((state) => state.isViewingDeleted)
-  // const [_key, task] = context.queryKey;
-
-  // if (typeof task.boardId !== 'number' || isNaN(task.boardId)) {
-  //   throw new Error("Board ID is required for fetching tasks.");
-  // }
-  // console.log(`Task ${task}`)
-  // console.log(task)
-
-  // const url = (isViewingDeleted ? `${BASE_URL}/boards/${task.boardId}/tasks/by-status/DELETED` : `${BASE_URL}/boards/${task.boardId}/tasks` )
-  // const res = await fetch(`${BASE_URL}/boards/${task.boardId}/tasks`);
-  // if (!res.ok) throw new Error("Failed to fetch tasks");
-  // const json: FetchTasksRes = await res.json();
-  
-  // return json.data;
-  return []
 };
 
 // Create a new task
