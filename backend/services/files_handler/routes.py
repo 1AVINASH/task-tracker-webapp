@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 
 from fastapi import APIRouter
 from fastapi.responses import FileResponse
@@ -9,7 +10,8 @@ from services.files_handler.dtos import Input
 
 files_router = APIRouter(prefix="/files", tags=["files"])
 
-UPLOAD_DIR = "/tmp/task-tracker"
+load_dotenv()
+UPLOAD_DIR = os.getenv("UPLOAD_DIRECTORY")
 
 @files_router.post("", response_model=DefaultOutput)
 async def upload_file(file: Input.UploadFile):

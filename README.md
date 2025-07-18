@@ -3,9 +3,6 @@ If you are someone going through the same problem, you have come to the right pa
 
 ---
 
-To start this project locally, clone it and then run `bash setup.sh`. You can also follow the steps below to create an executable and directly host the project using that
-
-
 ## Frontend
 * Built using tailwind-css and CRA
 * Color palette used: https://www.color-hex.com/color-palette/5244
@@ -15,6 +12,16 @@ To start this project locally, clone it and then run `bash setup.sh`. You can al
 
 ## Infra
 * Hosted locally on postgres using docker
+
+---
+
+## How to Run
+* Clone the repo
+* Create an .env file in backend and frontend both using the .env.sample file provided
+* Create a 'data' directory in backend 
+* Run `bash setup.sh` which will host the infra using docker and run backend in background. It will attach frontend to the same terminal. To run it in the background, you can combine it with nohup and '&'  
+
+You can also follow the steps below to create an executable
 
 ---
 
