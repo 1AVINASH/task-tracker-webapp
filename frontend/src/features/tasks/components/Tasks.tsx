@@ -1,9 +1,9 @@
 // src/features/home/pages/Home.tsx
 import React, { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import useGlobalTaskStore, { Task } from '../../../store/tasks'
+import useGlobalTaskStore, { Task, TaskStatus } from '../../../store/tasks'
 import Modal from '../../../components/Modals/Modal'
-import { fetchTasksApi, updateTaskApi, deleteTaskApi, moveTaskUpApi, moveTaskDownApi, deleteAllTaskApi, FetchTasksReq, fetchDeletedTasksApi } from '../api/tasks'
+import { fetchTasksApi, fetchCompletedTasksApi, updateTaskApi, deleteTaskApi, moveTaskUpApi, moveTaskDownApi, deleteAllTaskApi, FetchTasksReq, fetchDeletedTasksApi } from '../api/tasks'
 import { formatSecondsToHHMMSS } from '../../../utils/DateTimeUtils'
 import { useParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown'; // Import ReactMarkdown
@@ -22,16 +22,18 @@ const Tasks = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const isDeleteAllModalOpen = useGlobalTaskStore((state) => state.isDeleteAllModalOpen)
   const setIsDeleteAllModalOpen = useGlobalTaskStore((state) => state.setIsDeleteAllModalOpen)
-  const isViewingDeleted = useGlobalTaskStore((state) => state.isViewingDeleted)
-  const setIsViewingDeleted = useGlobalTaskStore((state) => state.setIsViewingDeleted)
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
+  const taskStatus = useGlobalTaskStore((state) => state.taskStatus)
+  const setTaskStatus = useGlobalTaskStore((state) => state.setTaskStatus)
+  const title = useGlobalTaskStore((state) => state.currentTitle)
+  const setTitle = useGlobalTaskStore((state) => state.setCurrentTitle)
+  const body = useGlobalTaskStore((state) => state.currentBody)
+  const setBody = useGlobalTaskStore((state) => state.setCurrentBody)
   const [currIndex, setIndex] = useState(-1);
   const timers = useRef<{ [id: number]: NodeJS.Timeout }>({});
   const queryClient = useQueryClient();
   const queryParams: FetchTasksReq = {
       boardId: boardId!, // Assuming `enabled` handles undef/NaN check
-      isViewingDeleted: isViewingDeleted!, // Assuming `enabled` handles undef/NaN check
+      taskStatus: taskStatus!, // Assuming `enabled` handles undef/NaN check
   };
   const { mutate: updateTaskMutation } = useMutation({ 
     mutationFn: updateTaskApi, 
@@ -71,7 +73,7 @@ const Tasks = () => {
 
   const { data: tasks = [], isLoading, error } = useQuery<Task[], Error, Task[], ['tasks', FetchTasksReq]>({
     queryKey: ['tasks', queryParams],
-    queryFn: (queryParams.isViewingDeleted ? fetchDeletedTasksApi : fetchTasksApi),
+    queryFn: (queryParams.taskStatus==TaskStatus.DELETED ? fetchDeletedTasksApi : (queryParams.taskStatus==TaskStatus.COMPLETED ? fetchCompletedTasksApi: fetchTasksApi)),
     refetchOnWindowFocus: false,
     staleTime: 10000,
     enabled: typeof boardId === 'number' && !isNaN(boardId),
@@ -267,7 +269,7 @@ const Tasks = () => {
             </div>
           </div>
           {
-            isViewingDeleted ? 
+            taskStatus==TaskStatus.DELETED ? 
             (<button className="m-1 bg-[#910000] p-3 text-white rounded" onClick={() => handleTaskStatusChange(index, 'IN_PROGRESS')}> Restore </button>)
             :
             (
@@ -281,7 +283,7 @@ const Tasks = () => {
                     : 
                     <button className="m-1 bg-[#424242] p-3 text-white rounded"  onClick={() => handleTaskStatusChange(index, 'COMPLETED')}> Mark as completed </button>
                 }
-                {!task.running ? (
+                {taskStatus==TaskStatus.IN_PROGRESS && !task.running ? (
                   <button
                     onClick={() => startTimer(task.id)}
                     className="m-1 bg-[#1E5631] p-3 text-white rounded"

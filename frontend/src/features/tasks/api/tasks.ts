@@ -24,7 +24,7 @@ export type moveTaskDownReq = {
 
 export type FetchTasksReq = {
     boardId: number
-    isViewingDeleted: boolean
+    taskStatus: string
 }
 
 type DeleteTaskReq = {
@@ -78,6 +78,20 @@ export const fetchDeletedTasksApi = async (context: QueryFunctionContext<['tasks
   return json.data;
 };
 
+export const fetchCompletedTasksApi = async (context: QueryFunctionContext<['tasks', FetchTasksReq]>): Promise<Task[]> => {
+  const [_key, task] = context.queryKey;
+
+  if (typeof task.boardId !== 'number' || isNaN(task.boardId)) {
+    throw new Error("Board ID is required for fetching tasks.");
+  }
+
+  const res = await fetch(`${BASE_URL}/boards/${task.boardId}/tasks/by-status/COMPLETED`);
+  if (!res.ok) throw new Error("Failed to fetch deleted tasks");
+  const json: FetchTasksRes = await res.json();
+  
+  return json.data;
+};
+
 
 // Fetch all tasks
 export const fetchTasksApi = async (context: QueryFunctionContext<['tasks', FetchTasksReq]>): Promise<Task[]> => {
@@ -87,7 +101,7 @@ export const fetchTasksApi = async (context: QueryFunctionContext<['tasks', Fetc
     throw new Error("Board ID is required for fetching tasks.");
   }
 
-  const res = await fetch(`${BASE_URL}/boards/${task.boardId}/tasks`);
+  const res = await fetch(`${BASE_URL}/boards/${task.boardId}/tasks/by-status/IN_PROGRESS`);
   if (!res.ok) throw new Error("Failed to fetch tasks");
   const json: FetchTasksRes = await res.json();
   

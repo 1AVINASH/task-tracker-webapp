@@ -1,6 +1,6 @@
 import { title } from 'process';
 import React, {useState, useEffect} from 'react'
-import useGlobalTaskStore, { Task } from '../../../../store/tasks'
+import useGlobalTaskStore, { Task, TaskStatus } from '../../../../store/tasks'
 import { Link } from 'react-router-dom';
 import Modal from '../../../../components/Modals/Modal'
 import { createTaskApi } from '../../api/tasks'
@@ -22,12 +22,12 @@ const Project = () => {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const queryClient = useQueryClient();
-  const isViewingDeleted = useGlobalTaskStore((state) => state.isViewingDeleted)
-  const setIsViewingDeleted = useGlobalTaskStore((state) => state.setIsViewingDeleted)
+  const taskStatus = useGlobalTaskStore((state) => state.taskStatus)
+  const setTaskStatus = useGlobalTaskStore((state) => state.setTaskStatus)
   const setIsDeleteAllModalOpen = useGlobalTaskStore((state) => state.setIsDeleteAllModalOpen)
   const queryParams: FetchTasksReq = {
       boardId: boardId!, // Assuming `enabled` handles undef/NaN check
-      isViewingDeleted: isViewingDeleted!, // Assuming `enabled` handles undef/NaN check
+      taskStatus: taskStatus!, // Assuming `enabled` handles undef/NaN check
   };
 
   useEffect(() => {
@@ -70,9 +70,9 @@ const Project = () => {
     }
   };
 
-  const handleViewingDeleted = (newViewingDeleted: boolean) => {
-    setIsViewingDeleted(newViewingDeleted)
-    queryParams.isViewingDeleted = newViewingDeleted
+  const handleViewChange = (newTaskStatus: string) => {
+    setTaskStatus(newTaskStatus)
+    queryParams.taskStatus = newTaskStatus
     queryClient.invalidateQueries({ queryKey: ['tasks', queryParams] as const });
   }
 
@@ -83,10 +83,15 @@ const Project = () => {
             Boards
         </Link>
         {
-          isViewingDeleted ?   
-          <button className="bg-[#1E5631] text-white w-full h-1/2 rounded font-semibold border border-[#e3e3e3]" onClick={() => handleViewingDeleted(false)}>View Working</button>
+          taskStatus==TaskStatus.DELETED ?
+          <button className="bg-[#1E5631] text-white w-full h-1/2 rounded font-semibold border border-[#e3e3e3]" onClick={() => handleViewChange(TaskStatus.IN_PROGRESS)}>View Working</button>
           :
-          <button className="bg-[#910000] text-white w-full h-1/2 rounded font-semibold border border-[#e3e3e3]" onClick={() => handleViewingDeleted(true)}>View Deleted</button>
+          (
+            taskStatus==TaskStatus.IN_PROGRESS ?
+            <button className="bg-[#910000] text-white w-full h-1/2 rounded font-semibold border border-[#e3e3e3]" onClick={() => handleViewChange(TaskStatus.COMPLETED)}>View Completed</button>
+            :
+            <button className="bg-[#910000] text-white w-full h-1/2 rounded font-semibold border border-[#e3e3e3]" onClick={() => handleViewChange(TaskStatus.DELETED)}>View Deleted</button>
+          )
         }
       </div>
       <p className="bg-[#202020] text-2xl underline text-[#e3e3e3] p-2.5 font-semibold pl-4 h-4/5 w-3/5 flex justify-center items-center">{currentBoard ? currentBoard.title : "TODO"}</p>
