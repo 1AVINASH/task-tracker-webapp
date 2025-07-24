@@ -1,4 +1,4 @@
-CREATE TABLE boards (
+CREATE TABLE if not exists boards (
     id bigserial,
     title varchar(255),
     theme varchar(255),
@@ -6,9 +6,9 @@ CREATE TABLE boards (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ALTER TABLE boards
-ADD COLUMN last_updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
+ADD COLUMN if not exists last_updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
 
-ALTER TABLE tasks ADD COLUMN board_id bigint;
+ALTER TABLE tasks ADD COLUMN if not exists board_id bigint;
 
 CREATE OR REPLACE FUNCTION update_last_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -18,10 +18,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER update_boards_last_updated_at
+
+CREATE TRIGGER if not exists update_boards_last_updated_at
 BEFORE UPDATE ON boards
 FOR EACH ROW
 EXECUTE FUNCTION update_last_updated_at_column();
 
-CREATE TYPE tasks_status AS ENUM('DELETED', 'COMPLETED', 'IN_PROGRESS');
-ALTER TABLE tasks ADD COLUMN status tasks_status;
+CREATE TYPE if not exists tasks_status AS ENUM('DELETED', 'COMPLETED', 'IN_PROGRESS');
+ALTER TABLE tasks ADD COLUMN if not exists status tasks_status;

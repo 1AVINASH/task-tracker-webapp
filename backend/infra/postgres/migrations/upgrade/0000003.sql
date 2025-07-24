@@ -1,0 +1,1 @@
+ALTER TABLE tasks ADD COLUMN if not exists started_at TIMESTAMP WITH TIME ZONE;

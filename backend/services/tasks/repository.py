@@ -2,7 +2,7 @@ import math
 from datetime import datetime, timezone, timedelta
 from dateutil.parser import parse
 
-from infra.postgres_setup import db
+from infra.postgres.postgres_setup import db
 from services.tasks.dtos import Input
 from services.tasks.models import Task
 

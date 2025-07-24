@@ -1,4 +1,4 @@
-from infra.postgres_setup import db
+from infra.postgres.postgres_setup import db
 
 from services.boards.dtos import Input
 

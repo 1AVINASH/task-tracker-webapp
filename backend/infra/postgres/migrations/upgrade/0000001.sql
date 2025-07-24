@@ -1,4 +1,4 @@
-CREATE TABLE tasks (
+CREATE TABLE if not exists tasks (
     id bigserial,
     title varchar(255),
     body varchar(255),
