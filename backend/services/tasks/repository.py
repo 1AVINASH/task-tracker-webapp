@@ -23,11 +23,6 @@ class RepositoryTasks:
         data = await db.fetch_all(query, values=values)
         
         data = [dict(row) for row in data]
-        for idx, task in enumerate(data):
-            if not task["running"]:
-                continue
-            task["seconds"] = task["seconds"] + (datetime.now(timezone.utc)-task["started_at"]).total_seconds()
-            data["idx"] = task
 
         return data
     
