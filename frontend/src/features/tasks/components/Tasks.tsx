@@ -283,21 +283,25 @@ const Tasks = () => {
                     : 
                     <button className="m-1 bg-[#424242] p-3 text-white rounded"  onClick={() => handleTaskStatusChange(index, 'COMPLETED')}> Mark as completed </button>
                 }
-                {taskStatus==TaskStatus.IN_PROGRESS && !task.running ? (
-                  <button
-                    onClick={() => startTimer(task.id)}
-                    className="m-1 bg-[#1E5631] p-3 text-white rounded"
-                  >
-                    Start Timer
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => stopTimer(task.id)}
-                    className="m-1 bg-[#910000] p-3 text-white rounded"
-                  >
-                    Stop Timer
-                  </button>
-                )}
+                {
+                  taskStatus==TaskStatus.IN_PROGRESS ? (
+                    !task.running ? (
+                      <button
+                        onClick={() => startTimer(task.id)}
+                        className="m-1 bg-[#1E5631] p-3 text-white rounded"
+                      >
+                        Start Timer
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => stopTimer(task.id)}
+                        className="m-1 bg-[#910000] p-3 text-white rounded"
+                      >
+                        Stop Timer
+                      </button>
+                    )
+                  ) : null
+                }
                 <button className="m-1 bg-[#910000] p-3 text-white rounded" onClick={() => deleteTaskUI(index)}> Delete </button>
                 <span className="bg-[#910000] p-3.5 pb-4 text-white rounded">Time Taken: {formatSecondsToHHMMSS(task.seconds)} </span>
               </div>
