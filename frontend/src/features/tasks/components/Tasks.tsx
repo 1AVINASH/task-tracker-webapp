@@ -257,7 +257,10 @@ const Tasks = () => {
         {tasks.map((task, index) => <li key={index}><span className="text">
           <div className="rounded mb-3 p-3 bg-[#202020] text-white">
             <div  className="ml-2">
-            <h1 className="text-2xl font-semibold mb-2">p{index}: {task.title}</h1>
+            <h1 className="text-2xl font-semibold mb-2">
+              {taskStatus === TaskStatus.IN_PROGRESS && `p${index}: `}
+              {task.title}
+            </h1>
             <div className="flex">
             <p className="text-xs mb-2">Status: &nbsp;</p>
             <p className="underline text-xs mb-2"> {viewToValueStatusMap.get(task.status)}</p>
