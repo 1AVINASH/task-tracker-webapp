@@ -88,7 +88,7 @@ const Project = () => {
           :
           (
             taskStatus==TaskStatus.IN_PROGRESS ?
-            <button className="bg-[#910000] text-white w-full h-1/2 rounded font-semibold border border-[#e3e3e3]" onClick={() => handleViewChange(TaskStatus.COMPLETED)}>View Completed</button>
+            <button className="bg-[#1E5631] text-white w-full h-1/2 rounded font-semibold border border-[#e3e3e3]" onClick={() => handleViewChange(TaskStatus.COMPLETED)}>View Completed</button>
             :
             <button className="bg-[#910000] text-white w-full h-1/2 rounded font-semibold border border-[#e3e3e3]" onClick={() => handleViewChange(TaskStatus.DELETED)}>View Deleted</button>
           )

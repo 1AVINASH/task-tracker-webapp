@@ -180,6 +180,9 @@ const Tasks = () => {
       if (isModalOpen) {
         setIsModalOpen(false);
       }
+      if (isDeleteModalOpen) {
+        setIsDeleteModalOpen(false);
+      }
     }
   };
   
@@ -273,7 +276,12 @@ const Tasks = () => {
           </div>
           {
             taskStatus==TaskStatus.DELETED ? 
-            (<button className="m-1 bg-[#910000] p-3 text-white rounded" onClick={() => handleTaskStatusChange(index, 'IN_PROGRESS')}> Restore </button>)
+            (
+              <div>
+              <button className="m-1 bg-[#910000] p-3 text-white rounded" onClick={() => handleTaskStatusChange(index, 'IN_PROGRESS')}> Restore </button>
+              <button className="m-1 bg-[#910000] p-3 text-white rounded" onClick={() => handleDeleteTask(index)}> Delete </button>
+              </div>
+            )
             :
             (
               <div>
@@ -305,7 +313,7 @@ const Tasks = () => {
                     )
                   ) : null
                 }
-                <button className="m-1 bg-[#910000] p-3 text-white rounded" onClick={() => deleteTaskUI(index)}> Delete </button>
+                <button className="m-1 bg-[#910000] p-3 text-white rounded" onClick={() => deleteTaskUI(index)}> Archive </button>
                 <span className="bg-[#910000] p-3.5 pb-4 text-white rounded">Time Taken: {formatSecondsToHHMMSS(task.seconds)} </span>
               </div>
             )
@@ -338,7 +346,7 @@ const Tasks = () => {
         </div>
       </Modal>
       <Modal isOpen={isDeleteModalOpen} onClose={() => deleteModalOnClose()}>
-        <h2 className="text-lg font-bold mb-2">Are you sure you want to delete this task?</h2>
+        <h2 className="text-lg font-bold mb-2">Are you sure you want to archive this task?</h2>
         <hr className="h-px mb-3 bg-gray-200 border-0 dark:bg-gray-700"></hr>
         <p className="text-2xl font-semibold mb-2">{tasks[currIndex]?.title}</p>
         <textarea disabled
@@ -350,7 +358,7 @@ const Tasks = () => {
         />
         <div className="flex justify-evenly items-center mx-20">
         <button
-          onClick={() => handleDeleteTask(currIndex)}
+          onClick={() => handleTaskStatusChange(currIndex, TaskStatus.DELETED)}
           className="bg-red-600 text-white px-4 py-2 rounded mx-5"
         >
           Yes

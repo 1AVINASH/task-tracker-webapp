@@ -69,7 +69,7 @@ class RepositoryTasks:
     
     @staticmethod
     async def delete_task(task_id: int):
-        query = "UPDATE tasks set status='DELETED' where id=:id;"
+        query = "DELETE from tasks where id=:id;"
         values = {"id": task_id}
         data = await db.execute(query=query, values=values)
 
