@@ -22,7 +22,11 @@ class RepositoryTasks:
         values = {"board_id": board_id, "status": status}
         data = await db.fetch_all(query, values=values)
         
-        data = [dict(row) for row in data]
+        data = [Task(**row) for row in data]
+        for index, task in enumerate(data):
+            if task.running:
+                task.seconds += int((datetime.now(timezone.utc) - task.started_at).total_seconds())
+                data[index] = task
 
         return data
     

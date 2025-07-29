@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 class Task(BaseModel):
     id: int
     title: str = Field(min_length=1, max_length=50)
+    board_id: Optional[int] = 0
     body: str = Field()
     priority: int
     running: bool
